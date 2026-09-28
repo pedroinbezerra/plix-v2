@@ -87,7 +87,50 @@ export function StreamingPlayer({
     };
   }, []);
 
-  // 3. Fullscreen toggle
+  // 3. Suporte a Controle Remoto de TV / D-pad
+  useEffect(() => {
+    const handleRemoteKey = (e: KeyboardEvent) => {
+      const { key, keyCode } = e;
+
+      // Tecla Voltar do controle da Smart TV (Tizen, webOS, Android TV, Escape, Backspace)
+      const isBackKey =
+        key === "Escape" ||
+        key === "Backspace" ||
+        key === "GoBack" ||
+        keyCode === 10009 ||
+        keyCode === 461 ||
+        keyCode === 4;
+
+      if (isBackKey) {
+        e.preventDefault();
+        router.push(backUrl);
+        router.refresh();
+        return;
+      }
+
+      // Tecla 'f' para alternar tela cheia
+      if (key === "f" || key === "F") {
+        e.preventDefault();
+        toggleFullscreen();
+        return;
+      }
+
+      // Teclas direcionais ou OK mostram a barra de controles e focam no botão Voltar se oculto
+      if (["ArrowUp", "ArrowDown", "Enter", " "].includes(key)) {
+        resetControlTimer();
+        if (!showControls) {
+          e.preventDefault();
+          const backBtn = containerRef.current?.querySelector('a[aria-label="Voltar"]') as HTMLElement;
+          backBtn?.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleRemoteKey);
+    return () => window.removeEventListener("keydown", handleRemoteKey);
+  }, [backUrl, router, showControls]);
+
+  // 4. Fullscreen toggle
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen?.().catch(() => {});
@@ -147,7 +190,7 @@ export function StreamingPlayer({
           <Link
             href={backUrl}
             onClick={handleBack}
-            className="p-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all backdrop-blur-md border border-white/10 cursor-pointer"
+            className="p-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all backdrop-blur-md border border-white/10 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
             aria-label="Voltar"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -172,7 +215,7 @@ export function StreamingPlayer({
           <button
             onClick={toggleCompleted}
             className={cn(
-              "flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all backdrop-blur-md border cursor-pointer",
+              "flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all backdrop-blur-md border cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none",
               isCompleted
                 ? "bg-emerald-600/30 text-emerald-300 border-emerald-500/50"
                 : "bg-white/10 text-gray-200 border-white/10 hover:bg-white/20"
@@ -196,7 +239,7 @@ export function StreamingPlayer({
           {nextEpisodeUrl && (
             <Link
               href={nextEpisodeUrl}
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-primary hover:bg-primary-hover active:scale-95 text-white text-xs sm:text-sm font-bold transition-all shadow-lg shadow-primary/30 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-primary hover:bg-primary-hover active:scale-95 text-white text-xs sm:text-sm font-bold transition-all shadow-lg shadow-primary/30 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
               title="Avançar para o próximo episódio"
             >
               <span className="hidden sm:inline">Próximo</span>
@@ -207,7 +250,7 @@ export function StreamingPlayer({
           {/* Fullscreen Button */}
           <button
             onClick={toggleFullscreen}
-            className="p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-md border border-white/10 cursor-pointer"
+            className="p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-md border border-white/10 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
             aria-label={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
           >
             {isFullscreen ? (

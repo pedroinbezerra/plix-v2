@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Film, Search, LogOut } from "lucide-react";
+import { Film, Search, LogOut, Tv } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AvatarDisplay } from "@/components/ui/AvatarDisplay";
 import { ProfileModal } from "@/components/profile/ProfileModal";
@@ -31,6 +31,32 @@ export function Navbar({ user, profile }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [activeProfile, setActiveProfile] = useState<ProfileItem | null>(profile || null);
+  const [isTvMode, setIsTvMode] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsTvMode(
+        localStorage.getItem("plix_tv_mode") === "true" ||
+          document.body.classList.contains("tv-mode")
+      );
+
+      const handleTvChange = (e: Event) => {
+        const customEvent = e as CustomEvent<{ isTvMode: boolean }>;
+        if (customEvent.detail) {
+          setIsTvMode(customEvent.detail.isTvMode);
+        } else {
+          setIsTvMode(document.body.classList.contains("tv-mode"));
+        }
+      };
+
+      window.addEventListener("plix:tv-mode-changed", handleTvChange);
+      return () => window.removeEventListener("plix:tv-mode-changed", handleTvChange);
+    }
+  }, []);
+
+  const handleToggleTv = () => {
+    window.dispatchEvent(new CustomEvent("plix:toggle-tv-mode"));
+  };
 
   useEffect(() => {
     if (profile) {
@@ -121,8 +147,27 @@ export function Navbar({ user, profile }: NavbarProps) {
           </nav>
         </div>
 
-        {/* Direita: Busca + Perfil + Logout */}
+        {/* Direita: Modo TV + Busca + Perfil + Logout */}
         <div className="flex items-center gap-2 sm:gap-4">
+          {/* Botão Alternar Modo Smart TV */}
+          <button
+            onClick={handleToggleTv}
+            aria-label={isTvMode ? "Desativar Modo TV" : "Ativar Modo TV"}
+            title={
+              isTvMode
+                ? "Modo Smart TV Ativo (Clique para desativar)"
+                : "Ativar Modo Smart TV (D-pad & Controle Remoto)"
+            }
+            className={cn(
+              "p-2.5 rounded-full transition-all flex items-center justify-center cursor-pointer",
+              isTvMode
+                ? "bg-primary text-white shadow-md shadow-primary/40 ring-2 ring-primary/40"
+                : "text-gray-300 hover:text-white hover:bg-white/10"
+            )}
+          >
+            <Tv className="w-5 h-5" />
+          </button>
+
           {/* Link para Busca */}
           <Link
             href="/busca"

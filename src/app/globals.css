@@ -18,10 +18,36 @@ body {
 /* TV & D-Pad focus ring styling */
 *:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px #ffffff, 0 0 18px 4px rgba(229, 9, 20, 0.7);
+  box-shadow: 0 0 0 3px #ffffff, 0 0 20px 5px rgba(229, 9, 20, 0.7);
   transform: scale(1.03);
   transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
   z-index: 40;
+}
+
+/* Modo Smart TV (10-foot experience) */
+body.tv-mode {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body.tv-mode *:focus-visible {
+  box-shadow: 0 0 0 4px #ffffff, 0 0 28px 8px rgba(229, 9, 20, 0.9);
+  transform: scale(1.06);
+  z-index: 50;
+}
+
+/* Ocultação de cursor em Smart TV quando inativo */
+body.tv-cursor-hide,
+body.tv-cursor-hide * {
+  cursor: none !important;
+}
+
+/* Otimizações de PWA e Mobile Standalone */
+@media all and (display-mode: standalone) {
+  body {
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 /* Custom horizontal scrollbars for media rows */
