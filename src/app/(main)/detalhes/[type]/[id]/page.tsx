@@ -11,6 +11,8 @@ import { EpisodeDetails } from "@/providers/metadata/types";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { formatMinutes } from "@/lib/utils";
+import { isJapaneseAnime } from "@/lib/media-classifier";
+import { cn } from "@/lib/utils";
 import { WatchlistButton } from "@/components/media/WatchlistButton";
 import { SeasonEpisodeSelector } from "@/components/media/SeasonEpisodeSelector";
 
@@ -30,6 +32,8 @@ export default async function DetalhesPage({ params }: PageProps) {
     SERIE: "SERIE",
     ANIME: "ANIME",
     DORAMA: "DORAMA",
+    DESENHO: "ANIME",
+    DESENHOS: "ANIME",
   };
 
   const mediaType = validTypes[normalizedType];
@@ -139,8 +143,21 @@ export default async function DetalhesPage({ params }: PageProps) {
           <div className="flex-1 pt-2 sm:pt-4">
             {/* Metadados rápidos */}
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              <span className="px-2.5 py-0.5 rounded bg-primary text-white text-xs font-bold uppercase tracking-wider shadow">
-                {mediaType}
+              <span
+                className={cn(
+                  "px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider shadow",
+                  normalizedType === "DESENHO" || normalizedType === "DESENHOS" || (mediaType === "ANIME" && !isJapaneseAnime(media))
+                    ? "bg-amber-600 text-amber-100"
+                    : mediaType === "ANIME"
+                    ? "bg-purple-600 text-purple-100"
+                    : "bg-primary text-white"
+                )}
+              >
+                {normalizedType === "DESENHO" || normalizedType === "DESENHOS" || (mediaType === "ANIME" && !isJapaneseAnime(media))
+                  ? "Desenho"
+                  : mediaType === "ANIME"
+                  ? "Anime"
+                  : mediaType}
               </span>
 
               {media.voteAverage > 0 && (

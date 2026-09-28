@@ -52,4 +52,7 @@ export interface EnrichedMedia {
   seasonsCount?: number;
   episodesCount?: number;
   seasons?: SeasonSummary[];
+  originCountry?: string[];
+  originalLanguage?: string;
+  isAnime?: boolean;
 }

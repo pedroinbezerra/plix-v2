@@ -138,22 +138,29 @@ export default async function HomePage() {
   let movieItems: EnrichedMedia[] = [];
   let seriesItems: EnrichedMedia[] = [];
   let animeItems: EnrichedMedia[] = [];
+  let cartoonItems: EnrichedMedia[] = [];
   let doramaItems: EnrichedMedia[] = [];
   let actionItems: EnrichedMedia[] = [];
 
   try {
-    const [movieIds, seriesIds, animeIds, doramaIds, actionIds] = await Promise.all([
+    const [movieIds, seriesIds, animeIds, cartoonIds, doramaIds, actionIds] = await Promise.all([
       catalogProvider.getCategoryItemIds("filme"),
       catalogProvider.getCategoryItemIds("serie"),
       catalogProvider.getCategoryItemIds("anime"),
+      catalogProvider.getCategoryItemIds("desenho"),
       catalogProvider.getCategoryItemIds("dorama"),
       catalogProvider.getItemIdsByGenre("filme", "acao"),
     ]);
 
-    const [movies, series, animes, doramas, action] = await Promise.all([
+    // Separa animes puros e desenhos ocidentais
+    const cartoonSet = new Set(cartoonIds);
+    const pureAnimeIds = animeIds.filter((id) => !cartoonSet.has(id));
+
+    const [movies, series, animes, cartoons, doramas, action] = await Promise.all([
       metadataProvider.getBatchDetails(movieIds.slice(0, 16), "FILME"),
       metadataProvider.getBatchDetails(seriesIds.slice(0, 16), "SERIE"),
-      metadataProvider.getBatchDetails(animeIds.slice(0, 16), "ANIME"),
+      metadataProvider.getBatchDetails(pureAnimeIds.slice(0, 16), "ANIME"),
+      metadataProvider.getBatchDetails(cartoonIds.slice(0, 16), "ANIME"),
       metadataProvider.getBatchDetails(doramaIds.slice(0, 16), "DORAMA"),
       metadataProvider.getBatchDetails(actionIds.slice(0, 16), "FILME"),
     ]);
@@ -161,6 +168,7 @@ export default async function HomePage() {
     movieItems = movies;
     seriesItems = series;
     animeItems = animes;
+    cartoonItems = cartoons;
     doramaItems = doramas;
     actionItems = action;
   } catch (error) {
@@ -218,11 +226,21 @@ export default async function HomePage() {
           viewAllHref="/series"
         />
 
-        <MediaRow
-          title="Animes"
-          items={animeItems}
-          viewAllHref="/animes"
-        />
+        {animeItems.length > 0 && (
+          <MediaRow
+            title="Animes em Destaque"
+            items={animeItems}
+            viewAllHref="/animes"
+          />
+        )}
+
+        {cartoonItems.length > 0 && (
+          <MediaRow
+            title="Desenhos Animados"
+            items={cartoonItems}
+            viewAllHref="/desenhos"
+          />
+        )}
 
         <MediaRow
           title="Doramas"

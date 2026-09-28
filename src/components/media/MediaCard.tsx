@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Star, Film, Tv, Play } from "lucide-react";
 import { EnrichedMedia } from "@/providers/metadata/types";
 import { cn } from "@/lib/utils";
+import { isJapaneseAnime } from "@/lib/media-classifier";
 
 interface MediaCardProps {
   media: EnrichedMedia | {
@@ -15,6 +16,9 @@ interface MediaCardProps {
     posterUrl: string | null;
     releaseYear?: string;
     voteAverage?: number;
+    originCountry?: string[];
+    originalLanguage?: string;
+    isAnime?: boolean;
   };
   priority?: boolean;
   className?: string;
@@ -25,6 +29,9 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
   const [currentTitle, setCurrentTitle] = useState(media.title);
   const [currentReleaseYear, setCurrentReleaseYear] = useState(media.releaseYear || "");
   const [currentVoteAverage, setCurrentVoteAverage] = useState(media.voteAverage || 0);
+  const [currentIsAnime, setCurrentIsAnime] = useState<boolean | undefined>(
+    "isAnime" in media ? (media as any).isAnime : undefined
+  );
   const [imageError, setImageError] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
 
@@ -34,7 +41,10 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
     setCurrentTitle(media.title);
     if (media.releaseYear) setCurrentReleaseYear(media.releaseYear);
     if (media.voteAverage) setCurrentVoteAverage(media.voteAverage);
-  }, [media.posterUrl, media.title, media.releaseYear, media.voteAverage]);
+    if ("isAnime" in media && (media as any).isAnime !== undefined) {
+      setCurrentIsAnime((media as any).isAnime);
+    }
+  }, [media.posterUrl, media.title, media.releaseYear, media.voteAverage, (media as any).isAnime]);
 
   // Autocura de metadados: Se o pôster ou o ano de lançamento estiverem ausentes, busca direto do TMDB
   React.useEffect(() => {
@@ -70,6 +80,9 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
             if (data.voteAverage && !currentVoteAverage) {
               setCurrentVoteAverage(data.voteAverage);
             }
+            if (typeof data.isAnime === "boolean") {
+              setCurrentIsAnime(data.isAnime);
+            }
           }
         })
         .catch(() => {})
@@ -77,10 +90,24 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
     }
   }, [currentPoster, imageError, media.id, media.mediaType, isRecovering, currentTitle, currentReleaseYear, currentVoteAverage]);
 
+  const isAnimeType = media.mediaType === "ANIME";
+  const isRealAnime = isAnimeType
+    ? isJapaneseAnime({
+        ...(media as any),
+        isAnime: currentIsAnime,
+        title: currentTitle,
+      })
+    : false;
+
+  const displayType = isAnimeType
+    ? (isRealAnime ? "ANIME" : "DESENHO")
+    : media.mediaType;
+
   const typeLabels: Record<string, string> = {
     FILME: "Filme",
     SERIE: "Série",
     ANIME: "Anime",
+    DESENHO: "Desenho",
     DORAMA: "Dorama",
   };
 
@@ -88,10 +115,11 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
     FILME: "bg-blue-600/80 text-blue-100",
     SERIE: "bg-emerald-600/80 text-emerald-100",
     ANIME: "bg-purple-600/80 text-purple-100",
+    DESENHO: "bg-amber-600/80 text-amber-100",
     DORAMA: "bg-rose-600/80 text-rose-100",
   };
 
-  const routeType = media.mediaType.toLowerCase();
+  const routeType = displayType === "DESENHO" ? "desenho" : media.mediaType.toLowerCase();
   const href = `/detalhes/${routeType}/${media.id}`;
 
   return (
@@ -142,10 +170,10 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
           <span
             className={cn(
               "px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase backdrop-blur-md shadow",
-              typeColors[media.mediaType] || "bg-black/60 text-white"
+              typeColors[displayType] || "bg-black/60 text-white"
             )}
           >
-            {typeLabels[media.mediaType] || media.mediaType}
+            {typeLabels[displayType] || displayType}
           </span>
         </div>
 

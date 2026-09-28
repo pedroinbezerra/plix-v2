@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 interface CategoryExplorerProps {
   title: string;
-  category: "filme" | "serie" | "anime" | "dorama";
+  category: "filme" | "serie" | "anime" | "dorama" | "desenho";
   genres: GenreItem[];
   items: EnrichedMedia[];
   activeGenre?: string;
@@ -29,6 +29,23 @@ export function CategoryExplorer({
 }: CategoryExplorerProps) {
   const searchParams = useSearchParams();
 
+  const getCategoryPath = (cat: string) => {
+    switch (cat) {
+      case "filme":
+        return "filmes";
+      case "serie":
+        return "series";
+      case "anime":
+        return "animes";
+      case "desenho":
+        return "desenhos";
+      default:
+        return "doramas";
+    }
+  };
+
+  const basePath = `/${getCategoryPath(category)}`;
+
   return (
     <div className="pt-20 sm:pt-24 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen">
       {/* Cabeçalho da Categoria */}
@@ -45,7 +62,7 @@ export function CategoryExplorer({
       {genres.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto plix-scrollbar pb-3 mb-8">
           <Link
-            href={`/${category === "filme" ? "filmes" : category === "serie" ? "series" : category === "anime" ? "animes" : "doramas"}`}
+            href={basePath}
             className={cn(
               "px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 cursor-pointer",
               !activeGenre
@@ -61,7 +78,7 @@ export function CategoryExplorer({
             return (
               <Link
                 key={g.id}
-                href={`/${category === "filme" ? "filmes" : category === "serie" ? "series" : category === "anime" ? "animes" : "doramas"}?genero=${g.slug}`}
+                href={`${basePath}?genero=${g.slug}`}
                 className={cn(
                   "px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 cursor-pointer",
                   isSelected

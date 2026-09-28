@@ -26,7 +26,7 @@ export class WarezCdnCatalogProvider implements ICatalogProvider {
         where: { category: cacheKey },
       });
 
-      if (dbCached && now - new Date(dbCached.updatedAt).getTime() < CACHE_TTL_MS) {
+      if (dbCached && (category === "desenho" || now - new Date(dbCached.updatedAt).getTime() < CACHE_TTL_MS)) {
         const ids = dbCached.itemIds as string[];
         this.memoryCache.set(cacheKey, { data: ids, timestamp: now });
         this.setCache.set(cacheKey, new Set(ids));
@@ -34,6 +34,23 @@ export class WarezCdnCatalogProvider implements ICatalogProvider {
       }
     } catch (e) {
       console.warn("Aviso ao ler cache do banco para catálogo:", e);
+    }
+
+    // Se categoria for "desenho", retorna o cache do banco ou fallback (não consulta API do WarezCDN pois não há endpoint nativo de desenho)
+    if (category === "desenho") {
+      try {
+        const dbCached = await prisma.catalogCache.findUnique({
+          where: { category: "cat_desenho" },
+        });
+        if (dbCached && Array.isArray(dbCached.itemIds)) {
+          const ids = dbCached.itemIds as string[];
+          this.memoryCache.set(cacheKey, { data: ids, timestamp: now });
+          this.setCache.set(cacheKey, new Set(ids));
+          return ids;
+        }
+      } catch (e) {}
+      if (inMem) return inMem.data;
+      return [];
     }
 
     // 3. Chamada à API externa
@@ -77,8 +94,9 @@ export class WarezCdnCatalogProvider implements ICatalogProvider {
   }
 
   async getGenres(category: CatalogCategory): Promise<GenreItem[]> {
+    const targetCategory = category === "desenho" ? "anime" : category;
     try {
-      const url = `${BASE_URL}/lista?category=${category}&type=generos&format=json`;
+      const url = `${BASE_URL}/lista?category=${targetCategory}&type=generos&format=json`;
       const res = await fetch(url, {
         headers: { "User-Agent": "Plix/1.0" },
         next: { revalidate: 86400 }, // 24h
@@ -104,6 +122,14 @@ export class WarezCdnCatalogProvider implements ICatalogProvider {
   }
 
   async getItemIdsByGenre(category: CatalogCategory, genreSlug: string): Promise<string[]> {
+    if (category === "desenho") {
+      const [animeGenreIds, cartoonIds] = await Promise.all([
+        this.getItemIdsByGenre("anime", genreSlug),
+        this.getCategoryItemIds("desenho"),
+      ]);
+      const cartoonSet = new Set(cartoonIds);
+      return animeGenreIds.filter((id) => cartoonSet.has(id));
+    }
     const cacheKey = `genre_${category}_${genreSlug}`;
     const now = Date.now();
 

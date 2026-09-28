@@ -28,6 +28,8 @@ export default async function AssistirPage({ params, searchParams }: PageProps) 
     SERIE: "SERIE",
     ANIME: "ANIME",
     DORAMA: "DORAMA",
+    DESENHO: "ANIME",
+    DESENHOS: "ANIME",
   };
 
   const mediaType = validTypes[normalizedType];

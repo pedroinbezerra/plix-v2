@@ -1,4 +1,4 @@
-export type CatalogCategory = "filme" | "serie" | "anime" | "dorama";
+export type CatalogCategory = "filme" | "serie" | "anime" | "dorama" | "desenho";
 
 export interface GenreItem {
   id: number;

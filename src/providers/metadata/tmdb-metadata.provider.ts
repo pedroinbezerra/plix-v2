@@ -2,6 +2,7 @@ import { MediaType } from "@prisma/client";
 import { IMetadataProvider } from "./metadata-provider.interface";
 import { EnrichedMedia, SeasonDetails, EpisodeDetails, SeasonSummary, CastMember } from "./types";
 import { prisma } from "@/lib/db/prisma";
+import { isJapaneseAnime } from "@/lib/media-classifier";
 
 const TMDB_API_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
@@ -73,7 +74,11 @@ export class TmdbMetadataProvider implements IMetadataProvider {
       });
 
       if (cached && new Date(cached.expiresAt) > new Date()) {
-        return cached.data as unknown as EnrichedMedia;
+        const enriched = cached.data as unknown as EnrichedMedia;
+        if (enriched.isAnime === undefined) {
+          enriched.isAnime = isJapaneseAnime(enriched);
+        }
+        return enriched;
       }
     } catch (e) {
       console.warn("Aviso ao ler cache do TMDB no banco:", e);
@@ -134,6 +139,19 @@ export class TmdbMetadataProvider implements IMetadataProvider {
             }))
         : [];
 
+      const originCountry = Array.isArray(data.origin_country)
+        ? data.origin_country
+        : Array.isArray(data.production_countries)
+        ? data.production_countries.map((p: { iso_3166_1: string }) => p.iso_3166_1)
+        : [];
+      const originalLanguage = data.original_language || "";
+      const isAnimeOrigin = isJapaneseAnime({
+        originCountry,
+        originalLanguage,
+        originalTitle: originalTitle || "",
+        title: title || "",
+      });
+
       const enriched: EnrichedMedia = {
         id: cleanId,
         mediaType,
@@ -152,6 +170,9 @@ export class TmdbMetadataProvider implements IMetadataProvider {
         seasonsCount: !isMovie ? data.number_of_seasons || seasons.length || 1 : undefined,
         episodesCount: !isMovie ? data.number_of_episodes : undefined,
         seasons: !isMovie ? seasons : undefined,
+        originCountry,
+        originalLanguage,
+        isAnime: isAnimeOrigin,
       };
 
       // 4. Salva no banco de dados (MediaMetadataCache)

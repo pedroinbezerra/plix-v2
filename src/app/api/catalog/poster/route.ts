@@ -16,13 +16,17 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const normalizedType = mediaTypeStr.toUpperCase() as MediaType;
-  if (!["FILME", "SERIE", "ANIME", "DORAMA"].includes(normalizedType)) {
+  let normalizedType = mediaTypeStr.toUpperCase();
+  if (normalizedType === "DESENHO" || normalizedType === "DESENHOS") {
+    normalizedType = "ANIME";
+  }
+  const mediaType = normalizedType as MediaType;
+  if (!["FILME", "SERIE", "ANIME", "DORAMA"].includes(mediaType)) {
     return NextResponse.json({ error: "Tipo de mídia inválido" }, { status: 400 });
   }
 
   try {
-    const details = await metadataProvider.getDetails(tmdbId, normalizedType);
+    const details = await metadataProvider.getDetails(tmdbId, mediaType);
 
     // Se houver perfil ativo, autocura o registro no banco caso estivesse sem pôster
     const profile = await getCurrentProfile().catch(() => null);
@@ -32,7 +36,7 @@ export async function GET(req: NextRequest) {
         where: {
           profileId: profile.id,
           tmdbId: String(tmdbId),
-          mediaType: normalizedType,
+          mediaType,
           OR: [
             { posterUrl: null },
             { posterUrl: "" },
@@ -50,7 +54,7 @@ export async function GET(req: NextRequest) {
         where: {
           profileId: profile.id,
           tmdbId: String(tmdbId),
-          mediaType: normalizedType,
+          mediaType,
           OR: [
             { posterUrl: null },
             { posterUrl: "" },
@@ -72,6 +76,9 @@ export async function GET(req: NextRequest) {
       backdropUrl: details.backdropUrl,
       releaseYear: details.releaseYear,
       voteAverage: details.voteAverage,
+      isAnime: details.isAnime,
+      originCountry: details.originCountry,
+      originalLanguage: details.originalLanguage,
     });
   } catch (error) {
     console.warn(`[PosterAPI] Erro ao recuperar pôster para ${mediaTypeStr}/${tmdbId}:`, error);

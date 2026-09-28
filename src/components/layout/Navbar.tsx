@@ -91,6 +91,7 @@ export function Navbar({ user, profile }: NavbarProps) {
     { label: "Filmes", href: "/filmes" },
     { label: "Séries", href: "/series" },
     { label: "Animes", href: "/animes" },
+    { label: "Desenhos", href: "/desenhos" },
     { label: "Doramas", href: "/doramas" },
     { label: "Minha Lista", href: "/minha-lista" },
     { label: "Histórico", href: "/historico" },

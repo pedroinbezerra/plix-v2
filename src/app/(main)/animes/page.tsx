@@ -14,14 +14,22 @@ export default async function AnimesPage({ searchParams }: PageProps) {
   const currentPage = Math.max(1, parseInt(page || "1", 10));
   const pageSize = 24;
 
-  const genres = await catalogProvider.getGenres("anime");
+  const [genres, cartoonIds] = await Promise.all([
+    catalogProvider.getGenres("anime"),
+    catalogProvider.getCategoryItemIds("desenho"),
+  ]);
 
-  let ids: string[] = [];
+  const cartoonSet = new Set(cartoonIds);
+
+  let rawIds: string[] = [];
   if (genero) {
-    ids = await catalogProvider.getItemIdsByGenre("anime", genero);
+    rawIds = await catalogProvider.getItemIdsByGenre("anime", genero);
   } else {
-    ids = await catalogProvider.getCategoryItemIds("anime");
+    rawIds = await catalogProvider.getCategoryItemIds("anime");
   }
+
+  // Exclui desenhos ocidentais da listagem de animes autênticos
+  const ids = rawIds.filter((id) => !cartoonSet.has(id));
 
   const offset = (currentPage - 1) * pageSize;
   const pageIds = ids.slice(offset, offset + pageSize);
