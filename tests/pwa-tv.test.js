@@ -80,38 +80,112 @@ describe("Smart TV & Navegação por Controle Remoto (D-pad)", () => {
     assert.strictEqual(isDpadKey("Enter"), false);
   });
 
-  it("Valida detecção de navegadores de Smart TV via User-Agent", () => {
-    const isTvUserAgent = (ua) =>
-      /smart-tv|smarttv|googletv|appletv|hbbtv|pov_tv|netcast.tv|viera|bravia|tizen|webos|android.*tv|crkey/i.test(
-        ua
-      );
+  it("Valida detecção abrangente de navegadores e sistemas de Smart TV", () => {
+    const checkIsSmartTvLogic = (ua = "", winObj = {}) => {
+      if (
+        winObj.tizen !== undefined ||
+        winObj.webOS !== undefined ||
+        winObj.webOSSystem !== undefined
+      ) {
+        return true;
+      }
+      const tvRegex =
+        /smart-tv|smarttv|googletv|google\s?tv|android\s?tv|appletv|hbbtv|pov_tv|netcast|viera|bravia|tizen|web0?s|vidaa|hisense|roku|aft[a-z0-9]|firetv|fire\s?tv|crkey|mibox|mitv|shield|opera\s?tv|vewd|aquos|dtv|philipstv|sonytv|tv\s?bro|puffin/i;
+      return tvRegex.test(ua);
+    };
 
-    // Smart TVs reais
+    // 1. Samsung Tizen
     assert.strictEqual(
-      isTvUserAgent(
-        "Mozilla/5.0 (SMART-TV; LINUX; Tizen 5.0) AppleWebKit/537.36 (KHTML, like Gecko) Version/5.0 TV Safari/537.36"
-      ),
+      checkIsSmartTvLogic("Mozilla/5.0 (SMART-TV; LINUX; Tizen 6.0) SamsungBrowser/4.0"),
       true
     );
     assert.strictEqual(
-      isTvUserAgent(
-        "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36 WebAppManager"
-      ),
-      true
-    );
-    assert.strictEqual(
-      isTvUserAgent(
-        "Mozilla/5.0 (Linux; Android 10; BRAVIA 4K UR3 Build/QTG3.200305.001) AppleWebKit/537.36 Chrome/89.0.4389.105 Safari/537.36"
-      ),
+      checkIsSmartTvLogic("", { tizen: {} }),
       true
     );
 
-    // Desktop normal (não TV por padrão)
+    // 2. LG webOS
     assert.strictEqual(
-      isTvUserAgent(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      ),
+      checkIsSmartTvLogic("Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 Chrome/79.0 Safari/537.36"),
+      true
+    );
+    assert.strictEqual(
+      checkIsSmartTvLogic("", { webOS: {} }),
+      true
+    );
+
+    // 3. Sony BRAVIA Android TV
+    assert.strictEqual(
+      checkIsSmartTvLogic("Mozilla/5.0 (Linux; Android 10; BRAVIA 4K UR3 Build/QTG3) AppleWebKit/537.36"),
+      true
+    );
+
+    // 4. Amazon Fire TV (AFTMM / Silk)
+    assert.strictEqual(
+      checkIsSmartTvLogic("Mozilla/5.0 (Linux; Android 9; AFTMM Build/PS7273) AppleWebKit/537.36 Chrome/84.0 Silk/84.3"),
+      true
+    );
+
+    // 5. Google TV Streamer / Chromecast
+    assert.strictEqual(
+      checkIsSmartTvLogic("Mozilla/5.0 (Linux; Android 14; Google TV Streamer Build/UTTK) AppleWebKit/537.36"),
+      true
+    );
+
+    // 6. Hisense VIDAA OS
+    assert.strictEqual(
+      checkIsSmartTvLogic("Mozilla/5.0 (Linux; Hisense; VIDAA/5.0; U) AppleWebKit/537.36"),
+      true
+    );
+
+    // 7. Roku
+    assert.strictEqual(
+      checkIsSmartTvLogic("Roku/DVP-9.10 (049.10E04111A)"),
+      true
+    );
+
+    // 8. Navegador TV Bro para Android TV
+    assert.strictEqual(
+      checkIsSmartTvLogic("Mozilla/5.0 (Linux; U; Android 11; TV Bro/4.2.1) AppleWebKit/537.36"),
+      true
+    );
+
+    // Dispositivos padrão que NÃO são TV (não devem ativar automaticamente por UA)
+    assert.strictEqual(
+      checkIsSmartTvLogic("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36"),
       false
     );
+    assert.strictEqual(
+      checkIsSmartTvLogic("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1"),
+      false
+    );
+    assert.strictEqual(
+      checkIsSmartTvLogic("Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 Mobile Safari/537.36"),
+      false
+    );
+  });
+
+  it("Ativação automática por D-pad/controle remoto ocorre em tempo real ao pressionar qualquer tecla direcional", () => {
+    const shouldAutoActivateOnKey = (key, keyCode) => {
+      const isArrow = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key);
+      const isRemoteKey =
+        key === "Escape" ||
+        key === "Backspace" ||
+        key === "GoBack" ||
+        keyCode === 10009 ||
+        keyCode === 461 ||
+        keyCode === 4;
+      return isArrow || isRemoteKey;
+    };
+
+    assert.strictEqual(shouldAutoActivateOnKey("ArrowUp", 38), true);
+    assert.strictEqual(shouldAutoActivateOnKey("ArrowDown", 40), true);
+    assert.strictEqual(shouldAutoActivateOnKey("ArrowLeft", 37), true);
+    assert.strictEqual(shouldAutoActivateOnKey("ArrowRight", 39), true);
+    assert.strictEqual(shouldAutoActivateOnKey(null, 10009), true); // Tizen
+    assert.strictEqual(shouldAutoActivateOnKey(null, 461), true);   // webOS
+    assert.strictEqual(shouldAutoActivateOnKey(null, 4), true);     // Android TV
+    assert.strictEqual(shouldAutoActivateOnKey("a", 65), false);
+    assert.strictEqual(shouldAutoActivateOnKey("1", 49), false);
   });
 });

@@ -5,6 +5,35 @@ import { usePathname, useRouter } from "next/navigation";
 import { Tv, Monitor, ArrowLeft } from "lucide-react";
 
 /**
+ * Detecta se o dispositivo é uma Smart TV ou TV Box através de múltiplos sinais:
+ * 1. APIs Globais do SO da TV (Tizen, webOS, webOSSystem)
+ * 2. Padrões de User-Agent de fabricantes (Samsung, LG, Google TV, Android TV, Fire TV, Hisense, Roku, etc.)
+ */
+export function checkIsSmartTv(customUa?: string, customWin?: any): boolean {
+  if (typeof window === "undefined" && !customUa && !customWin) return false;
+
+  const win = customWin || (typeof window !== "undefined" ? window : null);
+  if (win) {
+    if (
+      typeof win.tizen !== "undefined" ||
+      typeof win.webOS !== "undefined" ||
+      typeof win.webOSSystem !== "undefined"
+    ) {
+      return true;
+    }
+  }
+
+  const ua = (
+    customUa || (typeof navigator !== "undefined" ? navigator.userAgent : "")
+  ).toLowerCase();
+
+  const tvRegex =
+    /smart-tv|smarttv|googletv|google\s?tv|android\s?tv|appletv|hbbtv|pov_tv|netcast|viera|bravia|tizen|web0?s|vidaa|hisense|roku|aft[a-z0-9]|firetv|fire\s?tv|crkey|mibox|mitv|shield|opera\s?tv|vewd|aquos|dtv|philipstv|sonytv|tv\s?bro|puffin/i;
+
+  return tvRegex.test(ua);
+}
+
+/**
  * SpatialNavigation & Smart TV Remote Engine
  * Transforma qualquer navegador (Smart TV, Android TV, Tizen, webOS, PC conectado à TV)
  * em uma experiência fluida de streaming operada 100% pelo controle remoto (D-Pad).
@@ -13,45 +42,53 @@ export function SpatialNavigation() {
   const pathname = usePathname();
   const router = useRouter();
   const [isTvMode, setIsTvMode] = useState(false);
+  const [isAutoDetected, setIsAutoDetected] = useState(false);
   const [toastInfo, setToastInfo] = useState<{ title: string; subtitle: string } | null>(null);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Detecção automática de navegadores de Smart TV
+  // 1. Detecção 100% automática de Smart TVs no carregamento da página
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const ua = window.navigator.userAgent.toLowerCase();
-    const isTvDetected =
-      /smart-tv|smarttv|googletv|appletv|hbbtv|pov_tv|netcast.tv|viera|bravia|tizen|webos|android.*tv|crkey/.test(
-        ua
-      );
-
+    const isTvDetected = checkIsSmartTv();
     const savedPreference = localStorage.getItem("plix_tv_mode");
-    if (savedPreference === "true" || (savedPreference === null && isTvDetected)) {
-      enableTvMode(false);
+
+    // Se o dispositivo for uma Smart TV, ativa automaticamente por padrão sem exigir clique!
+    if (isTvDetected || savedPreference === "true") {
+      enableTvMode(false, isTvDetected);
     }
   }, []);
 
-  const enableTvMode = (notify = true) => {
+  const enableTvMode = (notify = true, auto = false) => {
     setIsTvMode(true);
+    if (auto) setIsAutoDetected(true);
     localStorage.setItem("plix_tv_mode", "true");
     document.body.classList.add("tv-mode");
-    window.dispatchEvent(new CustomEvent("plix:tv-mode-changed", { detail: { isTvMode: true } }));
+    window.dispatchEvent(
+      new CustomEvent("plix:tv-mode-changed", {
+        detail: { isTvMode: true, isAutoDetected: auto || isAutoDetected },
+      })
+    );
     if (notify) {
       setToastInfo({
-        title: "Modo Smart TV Ativado",
+        title: auto ? "Smart TV Detectada Automaticamente" : "Modo Smart TV Ativado",
         subtitle: "Navegação por D-Pad e controle remoto otimizada.",
       });
-      setTimeout(() => setToastInfo(null), 3000);
+      setTimeout(() => setToastInfo(null), 3500);
     }
   };
 
   const disableTvMode = (notify = true) => {
     setIsTvMode(false);
+    setIsAutoDetected(false);
     localStorage.setItem("plix_tv_mode", "false");
     document.body.classList.remove("tv-mode");
     document.body.classList.remove("tv-cursor-hide");
-    window.dispatchEvent(new CustomEvent("plix:tv-mode-changed", { detail: { isTvMode: false } }));
+    window.dispatchEvent(
+      new CustomEvent("plix:tv-mode-changed", {
+        detail: { isTvMode: false, isAutoDetected: false },
+      })
+    );
     if (notify) {
       setToastInfo({
         title: "Modo Smart TV Desativado",
@@ -63,7 +100,7 @@ export function SpatialNavigation() {
 
   const toggleTvMode = () => {
     if (isTvMode) disableTvMode(true);
-    else enableTvMode(true);
+    else enableTvMode(true, false);
   };
 
   // Listener para eventos customizados disparados por outros componentes (ex: Navbar)
@@ -118,6 +155,14 @@ export function SpatialNavigation() {
         keyCode === 461 ||   // webOS Back
         keyCode === 4;       // Android TV Back
 
+      // Ativação automática ao interagir com o controle remoto ou setas direcionais (D-pad)
+      const isArrow = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key);
+      const isRemoteKey = isBackKey || keyCode === 10009 || keyCode === 461 || keyCode === 4;
+
+      if (!isTvMode && (isArrow || isRemoteKey) && !isInput) {
+        enableTvMode(true, true);
+      }
+
       // Tratamento especial da tecla VOLTAR do controle da TV
       if (isBackKey && !isInput) {
         // Se houver modal aberto com botão fechar, fecha o modal primeiro
@@ -151,7 +196,6 @@ export function SpatialNavigation() {
       }
 
       // Navegação por setas (D-pad)
-      const isArrow = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key);
       if (!isArrow || isInput) return;
 
       const activeEl = document.activeElement as HTMLElement | null;

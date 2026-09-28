@@ -32,6 +32,7 @@ export function Navbar({ user, profile }: NavbarProps) {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [activeProfile, setActiveProfile] = useState<ProfileItem | null>(profile || null);
   const [isTvMode, setIsTvMode] = useState(false);
+  const [isAutoDetectedTv, setIsAutoDetectedTv] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -41,9 +42,12 @@ export function Navbar({ user, profile }: NavbarProps) {
       );
 
       const handleTvChange = (e: Event) => {
-        const customEvent = e as CustomEvent<{ isTvMode: boolean }>;
+        const customEvent = e as CustomEvent<{ isTvMode: boolean; isAutoDetected?: boolean }>;
         if (customEvent.detail) {
           setIsTvMode(customEvent.detail.isTvMode);
+          if (customEvent.detail.isAutoDetected) {
+            setIsAutoDetectedTv(true);
+          }
         } else {
           setIsTvMode(document.body.classList.contains("tv-mode"));
         }
@@ -155,17 +159,25 @@ export function Navbar({ user, profile }: NavbarProps) {
             aria-label={isTvMode ? "Desativar Modo TV" : "Ativar Modo TV"}
             title={
               isTvMode
-                ? "Modo Smart TV Ativo (Clique para desativar)"
+                ? isAutoDetectedTv
+                  ? "Modo Smart TV Ativo (Detectado Automaticamente)"
+                  : "Modo Smart TV Ativo (Clique para desativar)"
                 : "Ativar Modo Smart TV (D-pad & Controle Remoto)"
             }
             className={cn(
-              "p-2.5 rounded-full transition-all flex items-center justify-center cursor-pointer",
+              "p-2.5 rounded-full transition-all flex items-center justify-center cursor-pointer relative",
               isTvMode
                 ? "bg-primary text-white shadow-md shadow-primary/40 ring-2 ring-primary/40"
                 : "text-gray-300 hover:text-white hover:bg-white/10"
             )}
           >
             <Tv className="w-5 h-5" />
+            {isTvMode && (
+              <span
+                className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-background animate-pulse"
+                title="Ativo"
+              />
+            )}
           </button>
 
           {/* Link para Busca */}
