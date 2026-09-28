@@ -22,10 +22,20 @@ interface MediaCardProps {
 export function MediaCard({ media, priority = false }: MediaCardProps) {
   const [currentPoster, setCurrentPoster] = useState(media.posterUrl);
   const [currentTitle, setCurrentTitle] = useState(media.title);
+  const [currentReleaseYear, setCurrentReleaseYear] = useState(media.releaseYear || "");
+  const [currentVoteAverage, setCurrentVoteAverage] = useState(media.voteAverage || 0);
   const [imageError, setImageError] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
 
-  // Autocura de imagem: Se o pôster for nulo, inválido ou falhar o carregamento (404), busca direto do TMDB
+  // Sincroniza estado caso as props mudem dinamicamente
+  React.useEffect(() => {
+    setCurrentPoster(media.posterUrl);
+    setCurrentTitle(media.title);
+    if (media.releaseYear) setCurrentReleaseYear(media.releaseYear);
+    if (media.voteAverage) setCurrentVoteAverage(media.voteAverage);
+  }, [media.posterUrl, media.title, media.releaseYear, media.voteAverage]);
+
+  // Autocura de metadados: Se o pôster ou o ano de lançamento estiverem ausentes, busca direto do TMDB
   React.useEffect(() => {
     const isInvalidPoster =
       !currentPoster ||
@@ -33,25 +43,38 @@ export function MediaCard({ media, priority = false }: MediaCardProps) {
       currentPoster.includes("test.jpg") ||
       imageError;
 
-    if (isInvalidPoster && !isRecovering && media.id && media.mediaType) {
+    const isMissingYear =
+      !currentReleaseYear ||
+      currentReleaseYear.trim() === "" ||
+      currentReleaseYear === "—";
+
+    if ((isInvalidPoster || isMissingYear) && !isRecovering && media.id && media.mediaType) {
       setIsRecovering(true);
       fetch(
         `/api/catalog/poster?tmdbId=${encodeURIComponent(media.id)}&mediaType=${encodeURIComponent(media.mediaType)}`
       )
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
-          if (data?.posterUrl && data.posterUrl !== currentPoster) {
-            setCurrentPoster(data.posterUrl);
-            setImageError(false);
+          if (data) {
+            if (data.posterUrl && data.posterUrl !== currentPoster) {
+              setCurrentPoster(data.posterUrl);
+              setImageError(false);
+            }
             if (data.title && (!currentTitle || currentTitle.startsWith("Item #"))) {
               setCurrentTitle(data.title);
+            }
+            if (data.releaseYear && (!currentReleaseYear || currentReleaseYear === "—")) {
+              setCurrentReleaseYear(data.releaseYear);
+            }
+            if (data.voteAverage && !currentVoteAverage) {
+              setCurrentVoteAverage(data.voteAverage);
             }
           }
         })
         .catch(() => {})
         .finally(() => setIsRecovering(false));
     }
-  }, [currentPoster, imageError, media.id, media.mediaType, isRecovering, currentTitle]);
+  }, [currentPoster, imageError, media.id, media.mediaType, isRecovering, currentTitle, currentReleaseYear, currentVoteAverage]);
 
   const typeLabels: Record<string, string> = {
     FILME: "Filme",
@@ -125,10 +148,10 @@ export function MediaCard({ media, priority = false }: MediaCardProps) {
         </div>
 
         {/* Badge de Nota TMDB se disponível */}
-        {media.voteAverage && media.voteAverage > 0 ? (
+        {currentVoteAverage && currentVoteAverage > 0 ? (
           <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-1.5 py-0.5 rounded-md flex items-center gap-1 text-[11px] font-bold text-amber-400">
             <Star className="w-3 h-3 fill-amber-400" />
-            <span>{media.voteAverage}</span>
+            <span>{currentVoteAverage}</span>
           </div>
         ) : null}
       </div>
@@ -139,7 +162,7 @@ export function MediaCard({ media, priority = false }: MediaCardProps) {
           {currentTitle || media.title}
         </h3>
         <div className="flex items-center justify-between text-[11px] text-gray-400 mt-1">
-          <span>{media.releaseYear || "—"}</span>
+          <span>{currentReleaseYear || "—"}</span>
         </div>
       </div>
     </Link>

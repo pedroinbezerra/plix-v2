@@ -26,25 +26,29 @@ export default async function HomePage() {
         history.map(async (h) => {
           let posterUrl = h.posterUrl;
           let title = h.title;
-          const isInvalid = !posterUrl || posterUrl.trim() === "" || posterUrl.includes("test.jpg");
+          let releaseYear = "";
+          let voteAverage = 0;
 
-          if (isInvalid) {
-            try {
-              const details = await metadataProvider.getDetails(h.tmdbId, h.mediaType);
-              if (details.posterUrl) {
-                posterUrl = details.posterUrl;
-                if (!title || title.startsWith("Item #")) title = details.title;
-                // Autocura no banco
+          try {
+            const details = await metadataProvider.getDetails(h.tmdbId, h.mediaType);
+            if (details) {
+              if (details.posterUrl) posterUrl = details.posterUrl;
+              if (!title || title.startsWith("Item #")) title = details.title;
+              if (details.releaseYear) releaseYear = details.releaseYear;
+              if (details.voteAverage) voteAverage = details.voteAverage;
+
+              // Autocura no banco se o poster ou título estavam vazios
+              if (!h.posterUrl || h.posterUrl !== posterUrl || !h.title) {
                 prisma.watchHistory
                   .updateMany({
                     where: { profileId: profile.id, tmdbId: h.tmdbId, mediaType: h.mediaType },
-                    data: { posterUrl: details.posterUrl, title: details.title },
+                    data: { posterUrl, title },
                   })
                   .catch(() => {});
               }
-            } catch (err) {
-              console.warn(`Erro ao auto-enriquecer poster de histórico #${h.tmdbId}:`, err);
             }
+          } catch (err) {
+            console.warn(`Erro ao auto-enriquecer item de histórico #${h.tmdbId}:`, err);
           }
 
           return {
@@ -58,10 +62,10 @@ export default async function HomePage() {
             posterUrl,
             backdropUrl: null,
             releaseDate: null,
-            releaseYear: "",
+            releaseYear,
             genres: [],
             runtime: 0,
-            voteAverage: 0,
+            voteAverage,
             voteCount: 0,
             cast: [],
           };

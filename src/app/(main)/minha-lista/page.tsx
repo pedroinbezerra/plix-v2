@@ -22,25 +22,29 @@ export default async function MinhaListaPage() {
     items.map(async (item) => {
       let posterUrl = item.posterUrl;
       let title = item.title;
-      const isInvalid = !posterUrl || posterUrl.trim() === "" || posterUrl.includes("test.jpg");
+      let releaseYear = "";
+      let voteAverage = 0;
 
-      if (isInvalid) {
-        try {
-          const details = await metadataProvider.getDetails(item.tmdbId, item.mediaType);
-          if (details.posterUrl) {
-            posterUrl = details.posterUrl;
-            if (!title || title.startsWith("Item #")) title = details.title;
-            // Autocura no banco
+      try {
+        const details = await metadataProvider.getDetails(item.tmdbId, item.mediaType);
+        if (details) {
+          if (details.posterUrl) posterUrl = details.posterUrl;
+          if (!title || title.startsWith("Item #")) title = details.title;
+          if (details.releaseYear) releaseYear = details.releaseYear;
+          if (details.voteAverage) voteAverage = details.voteAverage;
+
+          // Autocura no banco se o poster ou título estavam ausentes
+          if (!item.posterUrl || item.posterUrl !== posterUrl || !item.title) {
             prisma.watchlistItem
               .update({
                 where: { id: item.id },
-                data: { posterUrl: details.posterUrl, title: details.title },
+                data: { posterUrl, title },
               })
               .catch(() => {});
           }
-        } catch (err) {
-          console.warn(`Erro ao auto-enriquecer poster em Minha Lista #${item.tmdbId}:`, err);
         }
+      } catch (err) {
+        console.warn(`Erro ao auto-enriquecer item em Minha Lista #${item.tmdbId}:`, err);
       }
 
       return {
@@ -48,8 +52,8 @@ export default async function MinhaListaPage() {
         mediaType: item.mediaType,
         title: title || `Item #${item.tmdbId}`,
         posterUrl,
-        releaseYear: "",
-        voteAverage: 0,
+        releaseYear,
+        voteAverage,
       };
     })
   );
