@@ -1,0 +1,112 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum MediaType {
+  FILME
+  SERIE
+  ANIME
+  DORAMA
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model User {
+  id           String        @id @default(cuid())
+  username     String        @unique
+  passwordHash String
+  name         String
+  role         UserRole      @default(USER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  sessions     Session[]
+  profiles     Profile[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+model Profile {
+  id           String          @id @default(cuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  avatar       String          @default("avatar-1")
+  isKids       Boolean         @default(false)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  watchlist    WatchlistItem[]
+  watchHistory WatchHistory[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model WatchlistItem {
+  id        String    @id @default(cuid())
+  profileId String
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  mediaType MediaType
+  tmdbId    String
+  title     String?
+  posterUrl String?
+  createdAt DateTime  @default(now())
+
+  @@unique([profileId, mediaType, tmdbId])
+  @@index([profileId])
+}
+
+model WatchHistory {
+  id            String    @id @default(cuid())
+  profileId     String
+  profile       Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  mediaType     MediaType
+  tmdbId        String
+  seasonNumber  Int       @default(0)
+  episodeNumber Int       @default(0)
+  isCompleted   Boolean   @default(false)
+  lastWatchedAt DateTime  @default(now())
+  title         String?
+  posterUrl     String?
+
+  @@unique([profileId, mediaType, tmdbId, seasonNumber, episodeNumber])
+  @@index([profileId, lastWatchedAt])
+}
+
+model MediaMetadataCache {
+  id        String    @id @default(cuid())
+  tmdbId    String
+  mediaType MediaType
+  data      Json
+  cachedAt  DateTime  @default(now())
+  expiresAt DateTime
+
+  @@unique([tmdbId, mediaType])
+  @@index([tmdbId])
+}
+
+model CatalogCache {
+  id        String    @id @default(cuid())
+  category  String    @unique
+  itemIds   Json
+  updatedAt DateTime  @default(now()) @updatedAt
+}

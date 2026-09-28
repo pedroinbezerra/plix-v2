@@ -1,0 +1,91 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Plus, Check } from "lucide-react";
+import { MediaType } from "@prisma/client";
+import { cn } from "@/lib/utils";
+
+interface WatchlistButtonProps {
+  tmdbId: string;
+  mediaType: MediaType;
+  title: string;
+  posterUrl: string | null;
+  initialInWatchlist?: boolean;
+}
+
+export function WatchlistButton({
+  tmdbId,
+  mediaType,
+  title,
+  posterUrl,
+  initialInWatchlist = false,
+}: WatchlistButtonProps) {
+  const [inWatchlist, setInWatchlist] = useState(initialInWatchlist);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch(`/api/user/watchlist?tmdbId=${tmdbId}&mediaType=${mediaType}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && typeof data.inWatchlist === "boolean") {
+          setInWatchlist(data.inWatchlist);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [tmdbId, mediaType]);
+
+  const toggleWatchlist = async () => {
+    if (loading) return;
+    setLoading(true);
+
+    // Otimista
+    setInWatchlist((prev) => !prev);
+
+    try {
+      const res = await fetch("/api/user/watchlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tmdbId, mediaType, title, posterUrl }),
+      });
+      const data = await res.json();
+      if (typeof data.inWatchlist === "boolean") {
+        setInWatchlist(data.inWatchlist);
+      }
+    } catch {
+      // Reverte em caso de falha
+      setInWatchlist((prev) => !prev);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={toggleWatchlist}
+      disabled={loading}
+      className={cn(
+        "flex items-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm sm:text-base backdrop-blur-md transition-all active:scale-95 cursor-pointer border",
+        inWatchlist
+          ? "bg-emerald-600/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-600/30"
+          : "bg-white/10 text-white border-white/20 hover:bg-white/20"
+      )}
+    >
+      {inWatchlist ? (
+        <>
+          <Check className="w-5 h-5 text-emerald-400" />
+          <span>Na Minha Lista</span>
+        </>
+      ) : (
+        <>
+          <Plus className="w-5 h-5" />
+          <span>Minha Lista</span>
+        </>
+      )}
+    </button>
+  );
+}
