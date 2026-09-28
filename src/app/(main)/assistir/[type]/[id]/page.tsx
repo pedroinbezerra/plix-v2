@@ -39,10 +39,10 @@ export default async function AssistirPage({ params, searchParams }: PageProps) 
   const seasonNumber = !isMovie ? Math.max(1, parseInt(s || "1", 10)) : undefined;
   const episodeNumber = !isMovie ? Math.max(1, parseInt(e || "1", 10)) : undefined;
 
-  // Constrói a configuração segura do player
+  // Constrói a configuração segura do player (com noLink e noEpList para suprimir anúncios e links externos)
   const playerConfig = isMovie
-    ? playbackProvider.getMoviePlayerConfig(id)
-    : playbackProvider.getSeriesPlayerConfig(id, seasonNumber!, episodeNumber!);
+    ? playbackProvider.getMoviePlayerConfig(id, { noLink: true })
+    : playbackProvider.getSeriesPlayerConfig(id, seasonNumber!, episodeNumber!, { noLink: true });
 
   // Enriquecimento de metadados para título e navegação
   const media = await metadataProvider.getDetails(id, mediaType);

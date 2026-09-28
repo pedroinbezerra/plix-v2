@@ -219,11 +219,12 @@ export function StreamingPlayer({
         </div>
       </div>
 
-      {/* Iframe Direto do Player Externo */}
+      {/* Iframe Direto do Player Externo com Sandbox Anti-Popups/Anúncios */}
       <iframe
         src={streamUrl}
         className="w-full h-full border-0 absolute inset-0"
         allow={allowDirectives}
+        sandbox="allow-scripts allow-same-origin allow-forms"
         allowFullScreen
         title={`Reprodução de ${title}`}
       />

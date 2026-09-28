@@ -36,16 +36,25 @@ export function AvatarDisplay({
     xl: "w-10 h-10",
   };
 
-  if (isUrl && avatar) {
+  const [imgError, setImgError] = React.useState(false);
+
+  if (isUrl && avatar && !imgError) {
     return (
       <div
         className={cn(
-          "relative rounded-xl overflow-hidden bg-surface-light border border-white/20 shadow-md",
+          "relative rounded-xl overflow-hidden bg-surface-light border border-white/20 shadow-md flex-shrink-0",
           sizeClasses[size],
           className
         )}
       >
-        <Image src={avatar} alt={name || "Avatar"} fill className="object-cover" />
+        <Image
+          src={avatar}
+          alt={name || "Avatar"}
+          fill
+          unoptimized
+          onError={() => setImgError(true)}
+          className="object-cover"
+        />
       </div>
     );
   }

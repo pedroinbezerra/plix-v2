@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdBlockerGuard } from "@/components/security/AdBlockerGuard";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="dark">
       <body className="bg-background text-foreground min-h-screen antialiased selection:bg-primary selection:text-white">
+        <AdBlockerGuard />
         {children}
       </body>
     </html>

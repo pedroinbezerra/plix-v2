@@ -73,6 +73,33 @@ describe("E2E Plix — Fluxo Crítico de Navegação, Autenticação e Reproduç
     assert.strictEqual(patchData.profile.avatar, "avatar-3");
   });
 
+  it("3c. Integração Gravatar (/api/user/profile/gravatar)", async () => {
+    const gravRes = await fetch(
+      `${BASE_URL}/api/user/profile/gravatar?email=pedro@plix.local&style=identicon`,
+      { headers: { Cookie: sessionCookie } }
+    );
+    assert.strictEqual(gravRes.status, 200);
+    const gravData = await gravRes.json();
+    assert.ok(gravData.url.includes("gravatar.com/avatar/"));
+    assert.ok(gravData.url.includes("d=identicon"));
+    assert.strictEqual(typeof gravData.hasCustomPhoto, "boolean");
+
+    // Aplicação da URL do Gravatar no perfil
+    const patchRes = await fetch(`${BASE_URL}/api/user/profile`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: sessionCookie,
+      },
+      body: JSON.stringify({
+        avatar: gravData.url,
+      }),
+    });
+    assert.strictEqual(patchRes.status, 200);
+    const patchData = await patchRes.json();
+    assert.ok(patchData.profile.avatar.includes("gravatar.com/avatar/"));
+  });
+
   it("4. Alternar item na Minha Lista (Watchlist)", async () => {
     // Garante estado limpo antes do teste
     const checkRes = await fetch(
@@ -188,7 +215,9 @@ describe("E2E Plix — Fluxo Crítico de Navegação, Autenticação e Reproduç
     assert.strictEqual(res.status, 200);
     const html = await res.text();
     assert.ok(html.includes("iframe"));
-    assert.ok(html.includes("https://warezcdn.sbs/filme/501624#noEpList"));
+    assert.ok(html.includes("https://warezcdn.sbs/filme/501624#noEpList&amp;noLink") || html.includes("https://warezcdn.sbs/filme/501624#noEpList&noLink"));
+    assert.ok(html.includes("sandbox="));
+    assert.ok(html.includes("allow-scripts allow-same-origin allow-forms"));
   });
 
   it("9. Carregar Minha Lista e Histórico em HTML", async () => {
