@@ -175,18 +175,20 @@ export default async function HomePage() {
     console.error("Erro ao carregar itens do catálogo para a Home:", error);
   }
 
-  // Define o item de destaque (Hero Banner)
-  const heroCandidate =
-    movieItems.find((m) => m.backdropUrl) ||
-    seriesItems.find((s) => s.backdropUrl) ||
-    movieItems[0] ||
-    seriesItems[0];
+  // Define candidatos para o carrossel Apple TV (Featured Tray)
+  const heroCandidates = [
+    ...movieItems.filter((m) => m.backdropUrl),
+    ...seriesItems.filter((s) => s.backdropUrl),
+    ...animeItems.filter((a) => a.backdropUrl),
+  ].slice(0, 6);
+
+  const defaultHero = heroCandidates[0] || movieItems[0] || seriesItems[0];
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Hero Banner */}
-      {heroCandidate ? (
-        <HeroBanner media={heroCandidate} />
+      {/* Hero Banner estilo Apple TV+ */}
+      {defaultHero ? (
+        <HeroBanner items={heroCandidates} media={defaultHero} />
       ) : (
         <div className="pt-24 px-4 sm:px-8 text-center">
           <h1 className="text-3xl font-bold text-white mb-2">Plix Streaming</h1>
@@ -194,13 +196,14 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* Fileiras de Mídia */}
-      <div className="-mt-12 sm:-mt-24 relative z-30 space-y-2">
+      {/* Fileiras de Mídia com espaçamento Apple TV */}
+      <div className="-mt-14 sm:-mt-28 relative z-30 space-y-2 pb-16">
         {continueWatching.length > 0 && (
           <MediaRow
             title="Continuar Assistindo"
             items={continueWatching}
             viewAllHref="/historico"
+            isLandscape={true}
             priority
           />
         )}

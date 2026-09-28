@@ -101,29 +101,29 @@ export function Navbar({ user, profile }: NavbarProps) {
     <>
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-40 transition-all duration-300 px-4 sm:px-8 py-3 sm:py-4 flex items-center justify-between",
+          "fixed top-0 left-0 right-0 z-40 transition-all duration-300 px-4 sm:px-8 py-3 sm:py-3.5 flex items-center justify-between",
           isScrolled
-            ? "bg-background/95 backdrop-blur-md shadow-lg shadow-black/40 border-b border-white/5"
-            : "bg-gradient-to-b from-black/80 via-black/40 to-transparent"
+            ? "bg-[#07080a]/85 backdrop-blur-2xl shadow-[0_12px_32px_rgba(0,0,0,0.85)] border-b border-white/[0.08]"
+            : "bg-gradient-to-b from-[#07080a]/90 via-[#07080a]/40 to-transparent"
         )}
       >
-        {/* Esquerda: Logo + Links */}
+        {/* Esquerda: Logo Apple-like + Links em Pílula */}
         <div className="flex items-center gap-6 sm:gap-10">
           <Link
             href="/"
             onClick={() => router.refresh()}
-            className="flex items-center gap-2 group transition-transform active:scale-95"
+            className="flex items-center gap-2.5 group transition-transform active:scale-95"
           >
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shadow-md shadow-primary/30">
-              <Film className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/15 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-lg group-hover:scale-105 transition-all">
+              <Film className="w-4.5 h-4.5 text-white" />
             </div>
-            <span className="text-2xl font-black tracking-wider text-white">
+            <span className="text-xl sm:text-2xl font-black tracking-wider text-white">
               PLIX
             </span>
           </Link>
 
-          {/* Links de navegação */}
-          <nav className="hidden md:flex items-center gap-1.5 lg:gap-2">
+          {/* Links de navegação em cápsulas Apple Glass */}
+          <nav className="hidden md:flex items-center gap-1 sm:gap-1.5">
             {navLinks.map((link) => {
               const isActive =
                 link.href === "/"
@@ -139,10 +139,10 @@ export function Navbar({ user, profile }: NavbarProps) {
                     }
                   }}
                   className={cn(
-                    "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors hover:text-white",
+                    "px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-medium transition-all",
                     isActive
-                      ? "text-white bg-white/10 font-semibold"
-                      : "text-gray-300 hover:bg-white/5"
+                      ? "text-white bg-white/15 backdrop-blur-xl border border-white/15 font-semibold shadow-sm"
+                      : "text-white/70 hover:text-white hover:bg-white/[0.08] border border-transparent"
                   )}
                 >
                   {link.label}
@@ -153,7 +153,7 @@ export function Navbar({ user, profile }: NavbarProps) {
         </div>
 
         {/* Direita: Modo TV + Busca + Perfil + Logout */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Botão Alternar Modo Smart TV */}
           <button
             onClick={handleToggleTv}
@@ -166,13 +166,13 @@ export function Navbar({ user, profile }: NavbarProps) {
                 : "Ativar Modo Smart TV (D-pad & Controle Remoto)"
             }
             className={cn(
-              "p-2.5 rounded-full transition-all flex items-center justify-center cursor-pointer relative",
+              "p-2.5 rounded-full transition-all flex items-center justify-center cursor-pointer relative backdrop-blur-xl border",
               isTvMode
-                ? "bg-primary text-white shadow-md shadow-primary/40 ring-2 ring-primary/40"
-                : "text-gray-300 hover:text-white hover:bg-white/10"
+                ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                : "bg-white/[0.06] hover:bg-white/[0.14] border-white/10 text-white/80 hover:text-white"
             )}
           >
-            <Tv className="w-5 h-5" />
+            <Tv className="w-4.5 h-4.5" />
             {isTvMode && (
               <span
                 className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-background animate-pulse"
@@ -186,17 +186,19 @@ export function Navbar({ user, profile }: NavbarProps) {
             href="/busca"
             aria-label="Pesquisar"
             className={cn(
-              "p-2.5 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center",
-              pathname === "/busca" && "bg-white/15 text-white"
+              "p-2.5 rounded-full backdrop-blur-xl border border-white/10 transition-all flex items-center justify-center",
+              pathname === "/busca"
+                ? "bg-white text-black border-white shadow-md"
+                : "bg-white/[0.06] hover:bg-white/[0.14] text-white/80 hover:text-white"
             )}
           >
-            <Search className="w-5 h-5" />
+            <Search className="w-4.5 h-4.5" />
           </Link>
 
-          {/* Botão de Perfil Interativo (Abre Modal de Gerenciamento) */}
+          {/* Botão de Perfil Interativo em Pílula Translúcida */}
           <button
             onClick={() => setIsProfileModalOpen(true)}
-            className="flex items-center gap-2.5 py-1 px-1.5 sm:px-3 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 text-xs text-gray-200 transition-all cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-primary"
+            className="flex items-center gap-2.5 py-1 px-1.5 sm:px-3 rounded-full bg-white/[0.08] hover:bg-white/[0.16] border border-white/15 text-xs text-white backdrop-blur-xl transition-all cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-white"
             aria-label="Gerenciar perfil e trocar foto"
             title="Clique para editar nome, trocar foto ou trocar de perfil"
           >
@@ -205,19 +207,19 @@ export function Navbar({ user, profile }: NavbarProps) {
               name={activeProfile?.name}
               size="sm"
             />
-            <span className="hidden sm:inline font-semibold max-w-[130px] truncate">
+            <span className="hidden sm:inline font-semibold max-w-[130px] truncate text-white/90">
               {activeProfile?.name || user?.name || "Perfil"}
             </span>
           </button>
 
-          {/* Botão de Logout Rápido */}
+          {/* Botão de Logout */}
           <button
             onClick={handleLogout}
             aria-label="Sair da conta"
             title="Encerrar sessão"
-            className="p-2.5 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center justify-center cursor-pointer"
+            className="p-2.5 rounded-full text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center justify-center cursor-pointer"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4.5 h-4.5" />
           </button>
         </div>
       </header>

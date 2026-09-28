@@ -49,8 +49,8 @@ export function SeasonEpisodeSelector({
 
   return (
     <div className="mt-10 sm:mt-14">
-      {/* Seletor de Temporadas (Tabs) */}
-      <div className="flex items-center gap-2 overflow-x-auto plix-scrollbar pb-3 mb-6">
+      {/* Seletor de Temporadas (Apple TV Capsule Tabs) */}
+      <div className="flex items-center gap-2 overflow-x-auto plix-scrollbar pb-3 mb-7">
         {seasons.map((s) => {
           const isSelected = activeSeason === s.seasonNumber;
           return (
@@ -58,10 +58,10 @@ export function SeasonEpisodeSelector({
               key={s.seasonNumber}
               onClick={() => handleSelectSeason(s.seasonNumber)}
               className={cn(
-                "px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all cursor-pointer flex-shrink-0 border",
+                "px-5 py-2 rounded-full font-semibold text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer flex-shrink-0 border backdrop-blur-xl",
                 isSelected
-                  ? "bg-primary text-white border-primary shadow-lg shadow-primary/30"
-                  : "bg-surface-light/80 text-gray-300 border-white/5 hover:bg-surface-hover hover:text-white"
+                  ? "bg-white text-black border-white shadow-[0_4px_16px_rgba(255,255,255,0.25)]"
+                  : "bg-white/[0.08] text-white/80 border-white/10 hover:bg-white/[0.16] hover:text-white"
               )}
             >
               {s.name || `Temporada ${s.seasonNumber}`}
@@ -72,8 +72,8 @@ export function SeasonEpisodeSelector({
 
       {/* Lista de Episódios */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -85,7 +85,7 @@ export function SeasonEpisodeSelector({
                 key={ep.episodeNumber}
                 href={playUrl}
                 tabIndex={0}
-                className="group relative flex flex-col rounded-xl overflow-hidden bg-surface-card border border-white/5 hover:border-white/20 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl hover:shadow-black/70 focus-visible:scale-[1.02] focus-visible:shadow-tv"
+                className="group relative flex flex-col rounded-2xl overflow-hidden bg-surface-card border border-white/[0.08] hover:border-white/30 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_45px_rgba(0,0,0,0.85)] focus-visible:scale-[1.04] focus-visible:shadow-tv focus-visible:border-white select-none"
               >
                 {/* Thumbnail 16:9 */}
                 <div className="relative aspect-video w-full bg-surface-light overflow-hidden">
@@ -95,48 +95,48 @@ export function SeasonEpisodeSelector({
                       alt={ep.name}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-surface-light text-gray-600">
+                    <div className="w-full h-full flex items-center justify-center bg-surface-light text-gray-500">
                       <Tv className="w-10 h-10" />
                     </div>
                   )}
 
-                  {/* Play overlay on hover/focus */}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/50">
-                      <Play className="w-6 h-6 fill-white ml-0.5" />
+                  {/* Play overlay on hover/focus estilo Apple TV */}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-white/95 text-black flex items-center justify-center shadow-2xl backdrop-blur-md transform translate-y-1 group-hover:translate-y-0 transition-transform">
+                      <Play className="w-5 h-5 fill-black ml-0.5" />
                     </div>
                   </div>
 
                   {/* Número do episódio no canto superior */}
-                  <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-xs font-bold text-white">
+                  <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-xs font-semibold text-white">
                     Ep. {ep.episodeNumber}
                   </div>
 
                   {ep.runtime > 0 && (
-                    <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-[11px] font-medium text-gray-300 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
+                    <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-[11px] font-medium text-white/80 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-white/60" />
                       <span>{formatMinutes(ep.runtime)}</span>
                     </div>
                   )}
                 </div>
 
                 {/* Conteúdo textual */}
-                <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+                <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between bg-surface-card">
                   <div>
-                    <h3 className="font-bold text-sm sm:text-base text-gray-100 group-hover:text-white line-clamp-1 mb-1">
+                    <h3 className="font-semibold text-sm sm:text-base text-white/90 group-hover:text-white line-clamp-1 mb-1 tracking-tight">
                       {ep.episodeNumber}. {ep.name}
                     </h3>
-                    <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-white/50 line-clamp-2 leading-relaxed">
                       {ep.overview || "Sem descrição disponível."}
                     </p>
                   </div>
 
                   {ep.voteAverage > 0 && (
-                    <div className="flex items-center gap-1 text-[11px] font-semibold text-amber-400 mt-2">
-                      <Star className="w-3 h-3 fill-amber-400" />
+                    <div className="flex items-center gap-1 text-[11px] font-semibold text-amber-300 mt-2.5">
+                      <Star className="w-3 h-3 fill-amber-300" />
                       <span>{ep.voteAverage}</span>
                     </div>
                   )}

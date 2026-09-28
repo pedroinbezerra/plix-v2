@@ -255,27 +255,29 @@ export function ProfileModal({
   const isCurrentGravatar = isGravatarUrl(currentProfile.avatar);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-lg bg-surface/95 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-2xl animate-fade-in">
+      <div className="relative w-full max-w-lg bg-[#101216]/95 border border-white/15 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="p-5 border-b border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <UserIcon className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-bold text-white">Gerenciar Perfil</h2>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white">
+              <UserIcon className="w-4 h-4 text-white" />
+            </div>
+            <h2 className="text-lg font-bold text-white tracking-tight">Gerenciar Perfil</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-2 rounded-full text-white/60 hover:text-white bg-white/5 hover:bg-white/15 transition-all cursor-pointer"
             aria-label="Fechar"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content Body */}
         <div className="p-6 overflow-y-auto plix-scrollbar space-y-6">
           {error && (
-            <div className="p-3 bg-red-500/15 border border-red-500/30 rounded-xl text-xs text-red-400">
+            <div className="p-3 bg-red-500/15 border border-red-500/30 rounded-2xl text-xs text-red-400">
               {error}
             </div>
           )}
@@ -283,7 +285,7 @@ export function ProfileModal({
           {activeTab === "view" && (
             <>
               {/* Card do Perfil Atual */}
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-surface-card border border-white/10">
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
                 <div className="flex items-center gap-4">
                   <AvatarDisplay
                     avatar={currentProfile.avatar}
@@ -297,14 +299,14 @@ export function ProfileModal({
                     <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
                       <span>Conta: <strong>{user.username}</strong></span>
                       {user.role === "ADMIN" && (
-                        <span className="flex items-center gap-0.5 text-primary text-[10px] uppercase font-bold bg-primary/10 px-1.5 py-0.5 rounded">
-                          <Shield className="w-3 h-3" />
+                        <span className="flex items-center gap-0.5 text-white text-[10px] uppercase font-bold bg-white/15 border border-white/20 px-2 py-0.5 rounded-full">
+                          <Shield className="w-3 h-3 text-white" />
                           Admin
                         </span>
                       )}
                     </div>
                     {isCurrentGravatar && (
-                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">
+                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-blue-300 bg-blue-500/15 border border-blue-400/30 px-2 py-0.5 rounded-full">
                         <CheckCircle2 className="w-3 h-3" />
                         Gravatar Integrado
                       </span>
@@ -317,9 +319,9 @@ export function ProfileModal({
                     setName(currentProfile.name);
                     setActiveTab("edit");
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-semibold flex items-center gap-1.5 transition-all border border-white/10 cursor-pointer"
+                  className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-semibold flex items-center gap-1.5 transition-all border border-white/15 cursor-pointer"
                 >
-                  <Edit3 className="w-4 h-4" />
+                  <Edit3 className="w-3.5 h-3.5" />
                   <span>Editar</span>
                 </button>
               </div>
@@ -338,17 +340,17 @@ export function ProfileModal({
                         onClick={() => handleSwitchProfile(p.id)}
                         disabled={saving}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-xl border text-left transition-all cursor-pointer",
+                          "flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all cursor-pointer",
                           isCurrent
-                            ? "bg-primary/15 border-primary text-white shadow-md shadow-primary/20"
-                            : "bg-surface-light/60 border-white/5 text-gray-300 hover:bg-surface-hover hover:text-white"
+                            ? "bg-white text-black border-white shadow-xl shadow-white/10 font-bold"
+                            : "bg-white/[0.04] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:text-white hover:border-white/20"
                         )}
                       >
                         <AvatarDisplay avatar={p.avatar} name={p.name} size="sm" />
-                        <span className="text-sm font-semibold truncate flex-1">
+                        <span className={cn("text-sm truncate flex-1", isCurrent ? "font-bold text-black" : "font-semibold")}>
                           {p.name}
                         </span>
-                        {isCurrent && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
+                        {isCurrent && <Check className="w-4 h-4 text-black flex-shrink-0" />}
                       </button>
                     );
                   })}
@@ -356,7 +358,7 @@ export function ProfileModal({
                   {profiles.length < 5 && (
                     <button
                       onClick={() => setActiveTab("new")}
-                      className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-white/20 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all text-xs font-semibold cursor-pointer"
+                      className="flex items-center justify-center gap-2 p-3.5 rounded-2xl border border-dashed border-white/20 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all text-xs font-semibold cursor-pointer"
                     >
                       <Plus className="w-4 h-4" />
                       <span>Novo Perfil</span>
@@ -380,7 +382,7 @@ export function ProfileModal({
                   placeholder="Nome do seu perfil"
                   required
                   autoFocus
-                  className="w-full px-4 py-3 rounded-xl bg-surface-light border border-white/10 text-white placeholder-gray-500 focus:border-primary focus:outline-none text-sm"
+                  className="w-full px-4 py-3 rounded-2xl bg-white/[0.05] border border-white/15 text-white placeholder-gray-500 focus:border-white focus:outline-none focus:ring-1 focus:ring-white text-sm transition-all"
                 />
               </div>
 
@@ -389,14 +391,14 @@ export function ProfileModal({
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
                   Origem do Avatar
                 </label>
-                <div className="grid grid-cols-3 gap-2 p-1 bg-surface-light rounded-xl border border-white/10">
+                <div className="grid grid-cols-3 gap-1 p-1 bg-white/[0.06] rounded-full border border-white/10">
                   <button
                     type="button"
                     onClick={() => setAvatarMode("preset")}
                     className={cn(
-                      "py-2 px-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer",
+                      "py-2 px-3 text-xs font-semibold rounded-full transition-all flex items-center justify-center gap-1.5 cursor-pointer",
                       avatarMode === "preset"
-                        ? "bg-primary text-white shadow-md shadow-primary/30"
+                        ? "bg-white text-black shadow-md font-bold"
                         : "text-gray-400 hover:text-white"
                     )}
                   >
@@ -407,9 +409,9 @@ export function ProfileModal({
                     type="button"
                     onClick={() => setAvatarMode("gravatar")}
                     className={cn(
-                      "py-2 px-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer",
+                      "py-2 px-3 text-xs font-semibold rounded-full transition-all flex items-center justify-center gap-1.5 cursor-pointer",
                       avatarMode === "gravatar"
-                        ? "bg-primary text-white shadow-md shadow-primary/30"
+                        ? "bg-white text-black shadow-md font-bold"
                         : "text-gray-400 hover:text-white"
                     )}
                   >
@@ -420,9 +422,9 @@ export function ProfileModal({
                     type="button"
                     onClick={() => setAvatarMode("url")}
                     className={cn(
-                      "py-2 px-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer",
+                      "py-2 px-3 text-xs font-semibold rounded-full transition-all flex items-center justify-center gap-1.5 cursor-pointer",
                       avatarMode === "url"
-                        ? "bg-primary text-white shadow-md shadow-primary/30"
+                        ? "bg-white text-black shadow-md font-bold"
                         : "text-gray-400 hover:text-white"
                     )}
                   >
@@ -447,10 +449,10 @@ export function ProfileModal({
                             setCustomAvatarUrl("");
                           }}
                           className={cn(
-                            "flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all border cursor-pointer",
+                            "flex flex-col items-center gap-1.5 p-2 rounded-2xl transition-all border cursor-pointer",
                             isSelected
-                              ? "bg-white/15 border-white ring-2 ring-primary scale-105"
-                              : "bg-surface-light/40 border-white/5 hover:bg-surface-hover"
+                              ? "bg-white/15 border-white ring-2 ring-white scale-105 shadow-lg"
+                              : "bg-white/[0.03] border-white/10 hover:bg-white/[0.08]"
                           )}
                         >
                           <AvatarDisplay avatar={preset.id} size="md" />
@@ -466,7 +468,7 @@ export function ProfileModal({
 
               {/* Modo: Integração com Gravatar */}
               {avatarMode === "gravatar" && (
-                <div className="space-y-4 p-4 rounded-xl bg-surface-card border border-white/10">
+                <div className="space-y-4 p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
                   <div className="flex items-start gap-3">
                     <AvatarDisplay
                       avatar={customAvatarUrl || buildGravatarUrl(gravatarEmail || "user@plix.local", { defaultStyle: gravatarStyle })}
@@ -483,11 +485,11 @@ export function ProfileModal({
                       {gravatarStatus.tested && (
                         <div className="pt-1">
                           {gravatarStatus.hasCustomPhoto ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-300 bg-emerald-500/15 border border-emerald-400/30 px-2.5 py-0.5 rounded-full">
                               <CheckCircle2 className="w-3 h-3" /> Foto real do Gravatar encontrada!
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-300 bg-blue-500/15 border border-blue-400/30 px-2.5 py-0.5 rounded-full">
                               <Sparkles className="w-3 h-3" /> Avatar padrão ({gravatarStyle}) gerado
                             </span>
                           )}
@@ -506,13 +508,13 @@ export function ProfileModal({
                         value={gravatarEmail}
                         onChange={(e) => setGravatarEmail(e.target.value)}
                         placeholder="exemplo@email.com"
-                        className="flex-1 px-3 py-2 rounded-xl bg-surface-light border border-white/10 text-white placeholder-gray-500 focus:border-primary focus:outline-none text-xs"
+                        className="flex-1 px-4 py-2 rounded-xl bg-white/[0.05] border border-white/15 text-white placeholder-gray-500 focus:border-white focus:outline-none text-xs"
                       />
                       <button
                         type="button"
                         onClick={() => handleFetchGravatar()}
                         disabled={gravatarLoading || !gravatarEmail.trim()}
-                        className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary-hover active:scale-95 text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                        className="px-4 py-2 rounded-full bg-white hover:bg-white/90 active:scale-95 text-black text-xs font-bold transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5 shadow-md"
                       >
                         {gravatarLoading ? (
                           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -539,10 +541,10 @@ export function ProfileModal({
                             }
                           }}
                           className={cn(
-                            "p-2 text-left rounded-lg border text-[11px] transition-all cursor-pointer",
+                            "p-2 text-left rounded-xl border text-[11px] transition-all cursor-pointer",
                             gravatarStyle === style.id
-                              ? "bg-white/15 border-white text-white font-bold"
-                              : "bg-surface-light/40 border-white/5 text-gray-400 hover:text-white"
+                              ? "bg-white text-black border-white font-bold shadow-md"
+                              : "bg-white/[0.04] border-white/10 text-gray-400 hover:text-white"
                           )}
                         >
                           {style.name.split(" ")[0]}
@@ -564,10 +566,10 @@ export function ProfileModal({
                     value={customAvatarUrl}
                     onChange={(e) => setCustomAvatarUrl(e.target.value)}
                     placeholder="https://exemplo.com/foto.jpg"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-light border border-white/10 text-white placeholder-gray-500 focus:border-primary focus:outline-none text-xs"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-white/[0.05] border border-white/15 text-white placeholder-gray-500 focus:border-white focus:outline-none text-xs"
                   />
                   {customAvatarUrl && (
-                    <div className="mt-3 flex items-center gap-3 p-3 bg-surface-light/50 rounded-xl border border-white/10">
+                    <div className="mt-3 flex items-center gap-3 p-3 bg-white/[0.04] rounded-2xl border border-white/10">
                       <AvatarDisplay avatar={customAvatarUrl} size="md" name={name} />
                       <span className="text-xs text-gray-300">Prévia da imagem informada</span>
                     </div>
@@ -579,14 +581,14 @@ export function ProfileModal({
                 <button
                   type="button"
                   onClick={() => setActiveTab("view")}
-                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-semibold transition-colors cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer border border-white/10"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover active:scale-95 text-white text-xs font-bold transition-all shadow-md shadow-primary/25 cursor-pointer disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-full bg-white hover:bg-white/90 active:scale-95 text-black text-xs font-bold transition-all shadow-lg cursor-pointer disabled:opacity-50"
                 >
                   {saving ? "Salvando..." : "Salvar Alterações"}
                 </button>
@@ -607,7 +609,7 @@ export function ProfileModal({
                   placeholder="Ex: Família, Crianças, Quarto"
                   required
                   autoFocus
-                  className="w-full px-4 py-3 rounded-xl bg-surface-light border border-white/10 text-white placeholder-gray-500 focus:border-primary focus:outline-none text-sm"
+                  className="w-full px-4 py-3 rounded-2xl bg-white/[0.05] border border-white/15 text-white placeholder-gray-500 focus:border-white focus:outline-none focus:ring-1 focus:ring-white text-sm transition-all"
                 />
               </div>
 
@@ -624,10 +626,10 @@ export function ProfileModal({
                         type="button"
                         onClick={() => setNewProfileAvatar(preset.id)}
                         className={cn(
-                          "flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all border cursor-pointer",
+                          "flex flex-col items-center gap-1.5 p-2 rounded-2xl transition-all border cursor-pointer",
                           isSelected
-                            ? "bg-white/15 border-white ring-2 ring-primary scale-105"
-                            : "bg-surface-light/40 border-white/5 hover:bg-surface-hover"
+                            ? "bg-white/15 border-white ring-2 ring-white scale-105 shadow-lg"
+                            : "bg-white/[0.03] border-white/10 hover:bg-white/[0.08]"
                         )}
                       >
                         <AvatarDisplay avatar={preset.id} size="md" />
@@ -644,14 +646,14 @@ export function ProfileModal({
                 <button
                   type="button"
                   onClick={() => setActiveTab("view")}
-                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-semibold transition-colors cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer border border-white/10"
                 >
                   Voltar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover active:scale-95 text-white text-xs font-bold transition-all shadow-md shadow-primary/25 cursor-pointer disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-full bg-white hover:bg-white/90 active:scale-95 text-black text-xs font-bold transition-all shadow-lg cursor-pointer disabled:opacity-50"
                 >
                   {saving ? "Criando..." : "Criar Perfil"}
                 </button>
@@ -661,11 +663,11 @@ export function ProfileModal({
         </div>
 
         {/* Footer com Ação de Logout */}
-        <div className="p-4 bg-surface-card border-t border-white/5 flex items-center justify-between">
-          <span className="text-xs text-gray-500">Plix • Streaming Local</span>
+        <div className="p-4 bg-white/[0.02] border-t border-white/10 flex items-center justify-between">
+          <span className="text-xs text-gray-500 font-medium">Plix • Apple TV Experience</span>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer border border-rose-500/20"
           >
             <LogOut className="w-4 h-4" />
             <span>Encerrar Sessão</span>

@@ -145,12 +145,12 @@ export default async function DetalhesPage({ params }: PageProps) {
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span
                 className={cn(
-                  "px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider shadow",
+                  "px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase backdrop-blur-xl border shadow-sm",
                   normalizedType === "DESENHO" || normalizedType === "DESENHOS" || (mediaType === "ANIME" && !isJapaneseAnime(media))
-                    ? "bg-amber-600 text-amber-100"
+                    ? "bg-amber-500/25 text-amber-200 border-amber-400/30"
                     : mediaType === "ANIME"
-                    ? "bg-purple-600 text-purple-100"
-                    : "bg-primary text-white"
+                    ? "bg-purple-500/25 text-purple-200 border-purple-400/30"
+                    : "bg-white/10 text-white border-white/15"
                 )}
               >
                 {normalizedType === "DESENHO" || normalizedType === "DESENHOS" || (mediaType === "ANIME" && !isJapaneseAnime(media))
@@ -160,30 +160,34 @@ export default async function DetalhesPage({ params }: PageProps) {
                   : mediaType}
               </span>
 
+              <span className="px-2.5 py-0.5 rounded-full bg-white/5 text-white/80 border border-white/10 text-[10px] font-bold tracking-wider uppercase">
+                4K HDR
+              </span>
+
               {media.voteAverage > 0 && (
-                <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded text-xs font-bold text-amber-400">
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
+                <div className="flex items-center gap-1 bg-black/60 backdrop-blur-xl border border-white/10 px-3 py-1 rounded-full text-xs font-bold text-amber-300">
+                  <Star className="w-3.5 h-3.5 fill-amber-300" />
                   <span>{media.voteAverage}</span>
-                  <span className="text-[10px] text-gray-400">({media.voteCount})</span>
+                  <span className="text-[10px] text-white/50">({media.voteCount})</span>
                 </div>
               )}
 
               {media.releaseYear && (
-                <div className="flex items-center gap-1 text-xs text-gray-300 font-medium">
-                  <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                <div className="flex items-center gap-1 text-xs text-white/70 font-medium px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10">
+                  <Calendar className="w-3.5 h-3.5 text-white/50" />
                   <span>{media.releaseYear}</span>
                 </div>
               )}
 
               {media.runtime > 0 && (
-                <div className="flex items-center gap-1 text-xs text-gray-400 font-medium">
-                  <Clock className="w-3.5 h-3.5 text-gray-400" />
+                <div className="flex items-center gap-1 text-xs text-white/60 font-medium px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10">
+                  <Clock className="w-3.5 h-3.5 text-white/50" />
                   <span>{formatMinutes(media.runtime)}</span>
                 </div>
               )}
 
               {lastWatchedHistory?.isCompleted && (
-                <div className="flex items-center gap-1 text-xs text-emerald-400 font-semibold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                <div className="flex items-center gap-1 text-xs text-emerald-400 font-semibold bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 rounded-full">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Assistido</span>
                 </div>
@@ -207,7 +211,7 @@ export default async function DetalhesPage({ params }: PageProps) {
                 {media.genres.map((g) => (
                   <span
                     key={g}
-                    className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-xs text-gray-300 font-medium"
+                    className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-white/70 font-medium"
                   >
                     {g}
                   </span>
@@ -216,17 +220,17 @@ export default async function DetalhesPage({ params }: PageProps) {
             )}
 
             {/* Sinopse */}
-            <p className="text-base sm:text-lg text-gray-300 leading-relaxed mb-8 max-w-3xl">
+            <p className="text-base sm:text-lg text-white/80 leading-relaxed mb-8 max-w-3xl">
               {media.overview || "Nenhuma sinopse disponível para este título."}
             </p>
 
-            {/* Ações principais */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-8">
+            {/* Ações principais (Apple TV Pill Buttons) */}
+            <div className="flex flex-wrap items-center gap-3.5 sm:gap-4 mb-8">
               <Link
                 href={playHref}
-                className="flex items-center gap-2 px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-hover active:scale-95 text-white font-bold text-sm sm:text-base transition-all shadow-xl shadow-primary/30 cursor-pointer"
+                className="flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-white hover:bg-white/90 active:scale-95 text-black font-semibold text-sm sm:text-base transition-all shadow-[0_12px_30px_rgba(255,255,255,0.25)] hover:shadow-[0_15px_35px_rgba(255,255,255,0.35)] cursor-pointer"
               >
-                <Play className="w-5 h-5 fill-white" />
+                <Play className="w-5 h-5 fill-black ml-0.5" />
                 <span>
                   {lastWatchedHistory && !isMovie
                     ? `Continuar (T${startSeason}:E${startEpisode})`

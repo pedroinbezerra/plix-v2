@@ -112,11 +112,11 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
   };
 
   const typeColors: Record<string, string> = {
-    FILME: "bg-blue-600/80 text-blue-100",
-    SERIE: "bg-emerald-600/80 text-emerald-100",
-    ANIME: "bg-purple-600/80 text-purple-100",
-    DESENHO: "bg-amber-600/80 text-amber-100",
-    DORAMA: "bg-rose-600/80 text-rose-100",
+    FILME: "bg-blue-500/25 text-blue-200 border-blue-400/30",
+    SERIE: "bg-emerald-500/25 text-emerald-200 border-emerald-400/30",
+    ANIME: "bg-purple-500/25 text-purple-200 border-purple-400/30",
+    DESENHO: "bg-amber-500/25 text-amber-200 border-amber-400/30",
+    DORAMA: "bg-rose-500/25 text-rose-200 border-rose-400/30",
   };
 
   const routeType = displayType === "DESENHO" ? "desenho" : media.mediaType.toLowerCase();
@@ -127,10 +127,10 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
       href={href}
       tabIndex={0}
       className={cn(
-        "group relative rounded-xl overflow-hidden bg-surface-card border border-white/5 transition-all duration-200 block select-none",
+        "group relative rounded-2xl overflow-hidden bg-surface-card border border-white/[0.08] transition-all duration-300 block select-none",
         className ? className : "flex-shrink-0 w-[140px] sm:w-[170px] md:w-[195px] lg:w-[210px]",
-        "hover:scale-105 hover:shadow-2xl hover:shadow-black/80 hover:border-white/20 hover:z-30",
-        "focus-visible:scale-105 focus-visible:shadow-tv focus-visible:border-white focus-visible:z-40"
+        "hover:scale-[1.04] hover:shadow-[0_20px_45px_rgba(0,0,0,0.85)] hover:border-white/30 hover:z-30",
+        "focus-visible:scale-[1.04] focus-visible:shadow-tv focus-visible:border-white focus-visible:z-40"
       )}
     >
       {/* Container de imagem com proporção 2:3 */}
@@ -143,14 +143,14 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
             sizes="(max-width: 640px) 140px, (max-width: 768px) 170px, (max-width: 1024px) 195px, 210px"
             priority={priority}
             onError={() => setImageError(true)}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-surface-light to-surface">
+          <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-surface to-background text-gray-500">
             {media.mediaType === "FILME" ? (
-              <Film className="w-10 h-10 text-gray-500 mb-2" />
+              <Film className="w-9 h-9 text-gray-500 mb-2" />
             ) : (
-              <Tv className="w-10 h-10 text-gray-500 mb-2" />
+              <Tv className="w-9 h-9 text-gray-500 mb-2" />
             )}
             <span className="text-xs font-semibold text-gray-300 line-clamp-3">
               {currentTitle || media.title}
@@ -159,39 +159,39 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
         )}
 
         {/* Gradiente escuro sobre a imagem */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full bg-primary/90 text-white flex items-center justify-center shadow-lg shadow-primary/40 transform translate-y-2 group-hover:translate-y-0 group-focus-visible:translate-y-0 transition-transform">
-            <Play className="w-6 h-6 fill-white ml-0.5" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-white/95 text-black flex items-center justify-center shadow-2xl transform translate-y-1 group-hover:translate-y-0 group-focus-visible:translate-y-0 transition-transform backdrop-blur-md">
+            <Play className="w-5 h-5 fill-black ml-0.5" />
           </div>
         </div>
 
-        {/* Badge de tipo de mídia */}
-        <div className="absolute top-2 left-2">
+        {/* Badge de tipo de mídia (Apple Glass Pill) */}
+        <div className="absolute top-2.5 left-2.5">
           <span
             className={cn(
-              "px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase backdrop-blur-md shadow",
-              typeColors[displayType] || "bg-black/60 text-white"
+              "px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wider uppercase backdrop-blur-xl border shadow-sm",
+              typeColors[displayType] || "bg-black/60 text-white border-white/10"
             )}
           >
             {typeLabels[displayType] || displayType}
           </span>
         </div>
 
-        {/* Badge de Nota TMDB se disponível */}
+        {/* Badge de Nota TMDB (Apple Gold Chip) */}
         {currentVoteAverage && currentVoteAverage > 0 ? (
-          <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-1.5 py-0.5 rounded-md flex items-center gap-1 text-[11px] font-bold text-amber-400">
-            <Star className="w-3 h-3 fill-amber-400" />
+          <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-xl border border-white/10 px-2 py-0.5 rounded-full flex items-center gap-1 text-[10px] font-bold text-amber-300 shadow-sm">
+            <Star className="w-3 h-3 fill-amber-300" />
             <span>{currentVoteAverage}</span>
           </div>
         ) : null}
       </div>
 
       {/* Informações textuais */}
-      <div className="p-2.5 sm:p-3">
-        <h3 className="font-semibold text-xs sm:text-sm text-gray-100 truncate group-hover:text-white group-focus-visible:text-white">
+      <div className="p-2.5 sm:p-3 bg-surface-card">
+        <h3 className="font-semibold text-xs sm:text-[13px] text-white/90 truncate tracking-tight group-hover:text-white group-focus-visible:text-white">
           {currentTitle || media.title}
         </h3>
-        <div className="flex items-center justify-between text-[11px] text-gray-400 mt-1">
+        <div className="flex items-center justify-between text-[11px] text-white/50 font-medium mt-1">
           <span>{currentReleaseYear || "—"}</span>
         </div>
       </div>

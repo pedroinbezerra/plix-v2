@@ -73,10 +73,10 @@ export function WatchlistButton({
       onClick={toggleWatchlist}
       disabled={loading}
       className={cn(
-        "flex items-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm sm:text-base backdrop-blur-md transition-all active:scale-95 cursor-pointer border",
+        "flex items-center gap-2.5 px-6 py-3.5 rounded-full font-medium text-sm sm:text-base backdrop-blur-2xl transition-all active:scale-95 cursor-pointer border shadow-sm",
         inWatchlist
-          ? "bg-emerald-600/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-600/30"
-          : "bg-white/10 text-white border-white/20 hover:bg-white/20"
+          ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/40 hover:bg-emerald-500/30"
+          : "bg-white/15 text-white border-white/20 hover:bg-white/25"
       )}
     >
       {inWatchlist ? (

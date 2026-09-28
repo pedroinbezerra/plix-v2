@@ -50,7 +50,7 @@ export function SearchClient() {
       {/* Campo de Busca Focável (Compatível com TV e Mobile) */}
       <div className="relative max-w-2xl mx-auto mb-8 sm:mb-12">
         <div className="relative flex items-center">
-          <SearchIcon className="absolute left-4 w-6 h-6 text-gray-400 pointer-events-none" />
+          <SearchIcon className="absolute left-5 w-5 h-5 text-white/50 pointer-events-none" />
           <input
             ref={inputRef}
             type="search"
@@ -58,12 +58,12 @@ export function SearchClient() {
             enterKeyHint="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Pesquise por filmes, séries, animes ou doramas..."
-            className="w-full pl-13 pr-12 py-4 rounded-2xl bg-surface-card border border-white/10 text-white placeholder-gray-500 text-base sm:text-lg focus:border-primary focus:bg-surface-light shadow-xl transition-all outline-none"
+            placeholder="Pesquise filmes, séries, animes ou doramas..."
+            className="w-full pl-14 pr-12 py-4 rounded-full bg-white/[0.06] border border-white/15 text-white placeholder-gray-400 text-base sm:text-lg focus:border-white focus:bg-white/[0.09] shadow-2xl backdrop-blur-2xl transition-all outline-none focus:ring-2 focus:ring-white/20"
           />
 
           {loading ? (
-            <div className="absolute right-4 text-primary">
+            <div className="absolute right-5 text-white">
               <Loader2 className="w-5 h-5 animate-spin" />
             </div>
           ) : query ? (
@@ -72,10 +72,10 @@ export function SearchClient() {
                 setQuery("");
                 inputRef.current?.focus();
               }}
-              className="absolute right-4 p-1.5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+              className="absolute right-4 p-2 rounded-full hover:bg-white/15 text-white/60 hover:text-white transition-colors cursor-pointer"
               aria-label="Limpar pesquisa"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           ) : null}
         </div>
@@ -85,7 +85,7 @@ export function SearchClient() {
       {results.length > 0 ? (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">
               Resultados ({results.length})
             </h2>
           </div>
@@ -101,13 +101,15 @@ export function SearchClient() {
           </div>
         </div>
       ) : hasSearched && !loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center bg-surface/30 rounded-2xl border border-white/5 p-8 max-w-lg mx-auto">
-          <Film className="w-16 h-16 text-gray-600 mb-4" />
-          <h3 className="text-lg font-bold text-gray-200 mb-1">
+        <div className="flex flex-col items-center justify-center py-20 text-center apple-glass-card rounded-3xl p-10 max-w-lg mx-auto shadow-xl">
+          <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+            <Film className="w-8 h-8 text-white/50" />
+          </div>
+          <h3 className="text-lg font-bold text-white mb-2">
             Nenhum resultado para &quot;{query}&quot;
           </h3>
-          <p className="text-xs sm:text-sm text-gray-400">
-            Verifique a ortografia ou tente pesquisar por outro termo, nome em português ou título original.
+          <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
+            Verifique a ortografia ou tente pesquisar por outro termo, título original ou nome de ator.
           </p>
         </div>
       ) : !query ? (

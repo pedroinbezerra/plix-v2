@@ -190,7 +190,7 @@ export function StreamingPlayer({
           <Link
             href={backUrl}
             onClick={handleBack}
-            className="p-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all backdrop-blur-md border border-white/10 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
+            className="p-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all backdrop-blur-md border border-white/15 cursor-pointer focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
             aria-label="Voltar"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -215,10 +215,10 @@ export function StreamingPlayer({
           <button
             onClick={toggleCompleted}
             className={cn(
-              "flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all backdrop-blur-md border cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none",
+              "flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all backdrop-blur-md border cursor-pointer focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none",
               isCompleted
-                ? "bg-emerald-600/30 text-emerald-300 border-emerald-500/50"
-                : "bg-white/10 text-gray-200 border-white/10 hover:bg-white/20"
+                ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/30"
+                : "bg-white/10 text-white border-white/15 hover:bg-white/20"
             )}
             title="Marcar como concluído/assistido"
           >
@@ -239,18 +239,18 @@ export function StreamingPlayer({
           {nextEpisodeUrl && (
             <Link
               href={nextEpisodeUrl}
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-primary hover:bg-primary-hover active:scale-95 text-white text-xs sm:text-sm font-bold transition-all shadow-lg shadow-primary/30 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
+              className="flex items-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-white hover:bg-white/90 active:scale-95 text-black text-xs sm:text-sm font-bold transition-all shadow-xl cursor-pointer focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
               title="Avançar para o próximo episódio"
             >
               <span className="hidden sm:inline">Próximo</span>
-              <SkipForward className="w-4 h-4 fill-white" />
+              <SkipForward className="w-4 h-4 fill-black" />
             </Link>
           )}
 
           {/* Fullscreen Button */}
           <button
             onClick={toggleFullscreen}
-            className="p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-md border border-white/10 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
+            className="p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-md border border-white/15 cursor-pointer focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
             aria-label={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
           >
             {isFullscreen ? (
