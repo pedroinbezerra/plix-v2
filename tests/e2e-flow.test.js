@@ -133,8 +133,6 @@ describe("E2E Plix — Fluxo Crítico de Navegação, Autenticação e Reproduç
       body: JSON.stringify({
         tmdbId: "501624",
         mediaType: "FILME",
-        title: "Deadpool 2",
-        posterUrl: "https://image.tmdb.org/t/p/w500/test.jpg",
       }),
     });
 

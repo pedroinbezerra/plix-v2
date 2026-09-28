@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Bookmark, Film } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
+import { metadataProvider } from "@/providers/metadata/tmdb-metadata.provider";
 import { MediaCard } from "@/components/media/MediaCard";
 
 export default async function MinhaListaPage() {
@@ -17,14 +18,41 @@ export default async function MinhaListaPage() {
       })
     : [];
 
-  const mediaList = items.map((item) => ({
-    id: item.tmdbId,
-    mediaType: item.mediaType,
-    title: item.title || `Item #${item.tmdbId}`,
-    posterUrl: item.posterUrl,
-    releaseYear: "",
-    voteAverage: 0,
-  }));
+  const mediaList = await Promise.all(
+    items.map(async (item) => {
+      let posterUrl = item.posterUrl;
+      let title = item.title;
+      const isInvalid = !posterUrl || posterUrl.trim() === "" || posterUrl.includes("test.jpg");
+
+      if (isInvalid) {
+        try {
+          const details = await metadataProvider.getDetails(item.tmdbId, item.mediaType);
+          if (details.posterUrl) {
+            posterUrl = details.posterUrl;
+            if (!title || title.startsWith("Item #")) title = details.title;
+            // Autocura no banco
+            prisma.watchlistItem
+              .update({
+                where: { id: item.id },
+                data: { posterUrl: details.posterUrl, title: details.title },
+              })
+              .catch(() => {});
+          }
+        } catch (err) {
+          console.warn(`Erro ao auto-enriquecer poster em Minha Lista #${item.tmdbId}:`, err);
+        }
+      }
+
+      return {
+        id: item.tmdbId,
+        mediaType: item.mediaType,
+        title: title || `Item #${item.tmdbId}`,
+        posterUrl,
+        releaseYear: "",
+        voteAverage: 0,
+      };
+    })
+  );
 
   return (
     <div className="pt-20 sm:pt-24 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen pb-16">

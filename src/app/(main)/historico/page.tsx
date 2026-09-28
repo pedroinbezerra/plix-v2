@@ -7,15 +7,50 @@ import { History, Play, CheckCircle2, Film, Tv, Clock } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 
+import { metadataProvider } from "@/providers/metadata/tmdb-metadata.provider";
+
 export default async function HistoricoPage() {
   const profile = await getCurrentProfile();
 
-  const historyItems = profile
+  const rawHistory = profile
     ? await prisma.watchHistory.findMany({
         where: { profileId: profile.id },
         orderBy: { lastWatchedAt: "desc" },
       })
     : [];
+
+  const historyItems = await Promise.all(
+    rawHistory.map(async (item) => {
+      let posterUrl = item.posterUrl;
+      let title = item.title;
+      const isInvalid = !posterUrl || posterUrl.trim() === "" || posterUrl.includes("test.jpg");
+
+      if (isInvalid) {
+        try {
+          const details = await metadataProvider.getDetails(item.tmdbId, item.mediaType);
+          if (details.posterUrl) {
+            posterUrl = details.posterUrl;
+            if (!title || title.startsWith("Item #")) title = details.title;
+            // Autocura no banco
+            prisma.watchHistory
+              .update({
+                where: { id: item.id },
+                data: { posterUrl: details.posterUrl, title: details.title },
+              })
+              .catch(() => {});
+          }
+        } catch (err) {
+          console.warn(`Erro ao auto-enriquecer poster no histórico #${item.tmdbId}:`, err);
+        }
+      }
+
+      return {
+        ...item,
+        posterUrl,
+        title: title || item.title,
+      };
+    })
+  );
 
   return (
     <div className="pt-20 sm:pt-24 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen pb-16">

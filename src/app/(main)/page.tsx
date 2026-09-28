@@ -22,30 +22,57 @@ export default async function HomePage() {
         take: 12,
       });
 
-      continueWatching = history.map((h) => ({
-        id: h.tmdbId,
-        mediaType: h.mediaType,
-        title: h.title || `Item #${h.tmdbId}`,
-        originalTitle: "",
-        overview: h.seasonNumber
-          ? `Temporada ${h.seasonNumber}, Episódio ${h.episodeNumber}`
-          : "Em andamento",
-        posterUrl: h.posterUrl,
-        backdropUrl: null,
-        releaseDate: null,
-        releaseYear: "",
-        genres: [],
-        runtime: 0,
-        voteAverage: 0,
-        voteCount: 0,
-        cast: [],
-      }));
+      continueWatching = await Promise.all(
+        history.map(async (h) => {
+          let posterUrl = h.posterUrl;
+          let title = h.title;
+          const isInvalid = !posterUrl || posterUrl.trim() === "" || posterUrl.includes("test.jpg");
+
+          if (isInvalid) {
+            try {
+              const details = await metadataProvider.getDetails(h.tmdbId, h.mediaType);
+              if (details.posterUrl) {
+                posterUrl = details.posterUrl;
+                if (!title || title.startsWith("Item #")) title = details.title;
+                // Autocura no banco
+                prisma.watchHistory
+                  .updateMany({
+                    where: { profileId: profile.id, tmdbId: h.tmdbId, mediaType: h.mediaType },
+                    data: { posterUrl: details.posterUrl, title: details.title },
+                  })
+                  .catch(() => {});
+              }
+            } catch (err) {
+              console.warn(`Erro ao auto-enriquecer poster de histórico #${h.tmdbId}:`, err);
+            }
+          }
+
+          return {
+            id: h.tmdbId,
+            mediaType: h.mediaType,
+            title: title || `Item #${h.tmdbId}`,
+            originalTitle: "",
+            overview: h.seasonNumber
+              ? `Temporada ${h.seasonNumber}, Episódio ${h.episodeNumber}`
+              : "Em andamento",
+            posterUrl,
+            backdropUrl: null,
+            releaseDate: null,
+            releaseYear: "",
+            genres: [],
+            runtime: 0,
+            voteAverage: 0,
+            voteCount: 0,
+            cast: [],
+          };
+        })
+      );
     } catch (e) {
       console.warn("Erro ao buscar histórico para home:", e);
     }
   }
 
-  // 2. Minha Lista (do banco de dados)
+  // 2. Minha Lista (do banco de dados com auto-enriquecimento e autocura)
   let watchlistItems: EnrichedMedia[] = [];
   if (profile) {
     try {
@@ -55,22 +82,49 @@ export default async function HomePage() {
         take: 16,
       });
 
-      watchlistItems = list.map((item) => ({
-        id: item.tmdbId,
-        mediaType: item.mediaType,
-        title: item.title || `Item #${item.tmdbId}`,
-        originalTitle: "",
-        overview: "",
-        posterUrl: item.posterUrl,
-        backdropUrl: null,
-        releaseDate: null,
-        releaseYear: "",
-        genres: [],
-        runtime: 0,
-        voteAverage: 0,
-        voteCount: 0,
-        cast: [],
-      }));
+      watchlistItems = await Promise.all(
+        list.map(async (item) => {
+          let posterUrl = item.posterUrl;
+          let title = item.title;
+          const isInvalid = !posterUrl || posterUrl.trim() === "" || posterUrl.includes("test.jpg");
+
+          if (isInvalid) {
+            try {
+              const details = await metadataProvider.getDetails(item.tmdbId, item.mediaType);
+              if (details.posterUrl) {
+                posterUrl = details.posterUrl;
+                if (!title || title.startsWith("Item #")) title = details.title;
+                // Autocura no banco
+                prisma.watchlistItem
+                  .update({
+                    where: { id: item.id },
+                    data: { posterUrl: details.posterUrl, title: details.title },
+                  })
+                  .catch(() => {});
+              }
+            } catch (err) {
+              console.warn(`Erro ao auto-enriquecer poster de watchlist #${item.tmdbId}:`, err);
+            }
+          }
+
+          return {
+            id: item.tmdbId,
+            mediaType: item.mediaType,
+            title: title || `Item #${item.tmdbId}`,
+            originalTitle: "",
+            overview: "",
+            posterUrl,
+            backdropUrl: null,
+            releaseDate: null,
+            releaseYear: "",
+            genres: [],
+            runtime: 0,
+            voteAverage: 0,
+            voteCount: 0,
+            cast: [],
+          };
+        })
+      );
     } catch (e) {
       console.warn("Erro ao carregar Minha Lista para home:", e);
     }

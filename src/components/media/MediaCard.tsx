@@ -20,7 +20,38 @@ interface MediaCardProps {
 }
 
 export function MediaCard({ media, priority = false }: MediaCardProps) {
+  const [currentPoster, setCurrentPoster] = useState(media.posterUrl);
+  const [currentTitle, setCurrentTitle] = useState(media.title);
   const [imageError, setImageError] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
+
+  // Autocura de imagem: Se o pôster for nulo, inválido ou falhar o carregamento (404), busca direto do TMDB
+  React.useEffect(() => {
+    const isInvalidPoster =
+      !currentPoster ||
+      currentPoster.trim() === "" ||
+      currentPoster.includes("test.jpg") ||
+      imageError;
+
+    if (isInvalidPoster && !isRecovering && media.id && media.mediaType) {
+      setIsRecovering(true);
+      fetch(
+        `/api/catalog/poster?tmdbId=${encodeURIComponent(media.id)}&mediaType=${encodeURIComponent(media.mediaType)}`
+      )
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.posterUrl && data.posterUrl !== currentPoster) {
+            setCurrentPoster(data.posterUrl);
+            setImageError(false);
+            if (data.title && (!currentTitle || currentTitle.startsWith("Item #"))) {
+              setCurrentTitle(data.title);
+            }
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsRecovering(false));
+    }
+  }, [currentPoster, imageError, media.id, media.mediaType, isRecovering, currentTitle]);
 
   const typeLabels: Record<string, string> = {
     FILME: "Filme",
@@ -51,10 +82,10 @@ export function MediaCard({ media, priority = false }: MediaCardProps) {
     >
       {/* Container de imagem com proporção 2:3 */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
-        {media.posterUrl && !imageError ? (
+        {currentPoster && !imageError ? (
           <Image
-            src={media.posterUrl}
-            alt={media.title}
+            src={currentPoster}
+            alt={currentTitle || media.title}
             fill
             sizes="(max-width: 640px) 140px, (max-width: 768px) 170px, (max-width: 1024px) 195px, 210px"
             priority={priority}
@@ -69,7 +100,7 @@ export function MediaCard({ media, priority = false }: MediaCardProps) {
               <Tv className="w-10 h-10 text-gray-500 mb-2" />
             )}
             <span className="text-xs font-semibold text-gray-300 line-clamp-3">
-              {media.title}
+              {currentTitle || media.title}
             </span>
           </div>
         )}
@@ -105,7 +136,7 @@ export function MediaCard({ media, priority = false }: MediaCardProps) {
       {/* Informações textuais */}
       <div className="p-2.5 sm:p-3">
         <h3 className="font-semibold text-xs sm:text-sm text-gray-100 truncate group-hover:text-white group-focus-visible:text-white">
-          {media.title}
+          {currentTitle || media.title}
         </h3>
         <div className="flex items-center justify-between text-[11px] text-gray-400 mt-1">
           <span>{media.releaseYear || "—"}</span>

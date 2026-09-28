@@ -59,22 +59,37 @@ export async function POST(req: NextRequest) {
       revalidatePath("/", "page");
       revalidatePath("/minha-lista", "page");
       return NextResponse.json({ inWatchlist: false });
-    } else {
+    }
+
+    // Auto-resolve poster e título a partir do TMDB se não informados ou inválidos
+      let finalTitle = title;
+      let finalPosterUrl = posterUrl;
+
+      if (!finalPosterUrl || finalPosterUrl.includes("test.jpg") || !finalTitle) {
+        try {
+          const { metadataProvider } = await import("@/providers/metadata/tmdb-metadata.provider");
+          const details = await metadataProvider.getDetails(String(tmdbId), mediaType as MediaType);
+          if (details.posterUrl) finalPosterUrl = details.posterUrl;
+          if (!finalTitle || finalTitle.startsWith("Item #")) finalTitle = details.title;
+        } catch (err) {
+          console.warn(`Erro ao resolver metadados para Watchlist #${tmdbId}:`, err);
+        }
+      }
+
       // Adiciona à lista
       await prisma.watchlistItem.create({
         data: {
           profileId: profile.id,
           mediaType: mediaType as MediaType,
           tmdbId: String(tmdbId),
-          title: title || null,
-          posterUrl: posterUrl || null,
+          title: finalTitle || null,
+          posterUrl: finalPosterUrl || null,
         },
       });
 
       revalidatePath("/", "page");
       revalidatePath("/minha-lista", "page");
       return NextResponse.json({ inWatchlist: true });
-    }
   } catch (error) {
     console.error("Erro ao alterar Watchlist:", error);
     return NextResponse.json({ error: "Erro interno no servidor" }, { status: 500 });

@@ -45,6 +45,21 @@ export async function POST(req: NextRequest) {
     const season = seasonNumber !== undefined && seasonNumber !== null ? Number(seasonNumber) : 0;
     const episode = episodeNumber !== undefined && episodeNumber !== null ? Number(episodeNumber) : 0;
 
+    // Auto-resolve poster e título a partir do TMDB se não informados ou inválidos
+    let finalTitle = title;
+    let finalPosterUrl = posterUrl;
+
+    if (!finalPosterUrl || finalPosterUrl.includes("test.jpg") || !finalTitle) {
+      try {
+        const { metadataProvider } = await import("@/providers/metadata/tmdb-metadata.provider");
+        const details = await metadataProvider.getDetails(String(tmdbId), mediaType as MediaType);
+        if (details.posterUrl) finalPosterUrl = details.posterUrl;
+        if (!finalTitle || finalTitle.startsWith("Item #")) finalTitle = details.title;
+      } catch (err) {
+        console.warn(`Erro ao resolver metadados para Histórico #${tmdbId}:`, err);
+      }
+    }
+
     const record = await prisma.watchHistory.upsert({
       where: {
         profileId_mediaType_tmdbId_seasonNumber_episodeNumber: {
@@ -62,15 +77,15 @@ export async function POST(req: NextRequest) {
         seasonNumber: season,
         episodeNumber: episode,
         isCompleted: Boolean(isCompleted),
-        title: title || null,
-        posterUrl: posterUrl || null,
+        title: finalTitle || null,
+        posterUrl: finalPosterUrl || null,
         lastWatchedAt: new Date(),
       },
       update: {
         isCompleted: Boolean(isCompleted),
         lastWatchedAt: new Date(),
-        ...(title ? { title } : {}),
-        ...(posterUrl ? { posterUrl } : {}),
+        ...(finalTitle ? { title: finalTitle } : {}),
+        ...(finalPosterUrl ? { posterUrl: finalPosterUrl } : {}),
       },
     });
 
