@@ -17,9 +17,10 @@ interface MediaCardProps {
     voteAverage?: number;
   };
   priority?: boolean;
+  className?: string;
 }
 
-export function MediaCard({ media, priority = false }: MediaCardProps) {
+export function MediaCard({ media, priority = false, className }: MediaCardProps) {
   const [currentPoster, setCurrentPoster] = useState(media.posterUrl);
   const [currentTitle, setCurrentTitle] = useState(media.title);
   const [currentReleaseYear, setCurrentReleaseYear] = useState(media.releaseYear || "");
@@ -98,7 +99,8 @@ export function MediaCard({ media, priority = false }: MediaCardProps) {
       href={href}
       tabIndex={0}
       className={cn(
-        "group relative flex-shrink-0 w-[140px] sm:w-[170px] md:w-[195px] lg:w-[210px] rounded-xl overflow-hidden bg-surface-card border border-white/5 transition-all duration-200 block select-none",
+        "group relative rounded-xl overflow-hidden bg-surface-card border border-white/5 transition-all duration-200 block select-none",
+        className ? className : "flex-shrink-0 w-[140px] sm:w-[170px] md:w-[195px] lg:w-[210px]",
         "hover:scale-105 hover:shadow-2xl hover:shadow-black/80 hover:border-white/20 hover:z-30",
         "focus-visible:scale-105 focus-visible:shadow-tv focus-visible:border-white focus-visible:z-40"
       )}

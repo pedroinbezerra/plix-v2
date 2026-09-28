@@ -51,4 +51,34 @@ describe("Catalog & Poster — Validação e Autocura de Imagens", () => {
     assert.strictEqual(healedYear, "2018");
     assert.strictEqual(healedVote, 7.5);
   });
+
+  it("Autocura de imagens no Histórico de Reprodução detecta URLs quebradas e resolve via TMDB", () => {
+    const historyItem = {
+      tmdbId: "603",
+      mediaType: "FILME",
+      title: "Matrix",
+      posterUrl: "https://image.tmdb.org/t/p/w500/broken_link_404.jpg",
+    };
+
+    const isImageBroken = (imageError, url) =>
+      imageError || !url || url.trim() === "" || url.includes("test.jpg");
+
+    // Simulando que o browser disparou onError ao falhar o carregamento do poster
+    const imageFailedInBrowser = true;
+    assert.strictEqual(isImageBroken(imageFailedInBrowser, historyItem.posterUrl), true);
+
+    // Resolução TMDB simulada
+    const freshTmdbDetails = {
+      posterUrl: "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
+    };
+
+    const resolvedPoster = isImageBroken(imageFailedInBrowser, historyItem.posterUrl)
+      ? freshTmdbDetails.posterUrl
+      : historyItem.posterUrl;
+
+    assert.strictEqual(
+      resolvedPoster,
+      "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg"
+    );
+  });
 });

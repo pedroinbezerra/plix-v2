@@ -75,11 +75,13 @@ export default async function MinhaListaPage() {
       </div>
 
       {mediaList.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5 lg:gap-6">
           {mediaList.map((media) => (
-            <div key={`${media.mediaType}-${media.id}`} className="flex justify-center">
-              <MediaCard media={media} />
-            </div>
+            <MediaCard
+              key={`${media.mediaType}-${media.id}`}
+              media={media}
+              className="w-full"
+            />
           ))}
         </div>
       ) : (

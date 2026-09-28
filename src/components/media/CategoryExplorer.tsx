@@ -76,13 +76,16 @@ export function CategoryExplorer({
         </div>
       )}
 
-      {/* Grid responsivo de Cards */}
+      {/* Grid responsivo de Cards com espaçamento perfeito */}
       {items.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5 lg:gap-6">
           {items.map((item, idx) => (
-            <div key={`${item.mediaType}-${item.id}`} className="flex justify-center">
-              <MediaCard media={item} priority={idx < 6} />
-            </div>
+            <MediaCard
+              key={`${item.mediaType}-${item.id}`}
+              media={item}
+              priority={idx < 6}
+              className="w-full"
+            />
           ))}
         </div>
       ) : (

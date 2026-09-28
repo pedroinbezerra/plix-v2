@@ -8,6 +8,7 @@ import { getCurrentProfile } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 
 import { metadataProvider } from "@/providers/metadata/tmdb-metadata.provider";
+import { HistoryThumbnail } from "@/components/media/HistoryThumbnail";
 
 export default async function HistoricoPage() {
   const profile = await getCurrentProfile();
@@ -88,19 +89,12 @@ export default async function HistoricoPage() {
                   href={playUrl}
                   className="relative w-20 h-28 flex-shrink-0 rounded-xl overflow-hidden bg-surface-light group-hover:scale-105 transition-transform"
                 >
-                  {item.posterUrl ? (
-                    <Image
-                      src={item.posterUrl}
-                      alt={item.title || "Poster"}
-                      fill
-                      sizes="80px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-500">
-                      {isMovie ? <Film className="w-6 h-6" /> : <Tv className="w-6 h-6" />}
-                    </div>
-                  )}
+                  <HistoryThumbnail
+                    tmdbId={item.tmdbId}
+                    mediaType={item.mediaType}
+                    initialPosterUrl={item.posterUrl}
+                    title={item.title}
+                  />
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Play className="w-6 h-6 fill-white text-white" />
                   </div>
