@@ -12,7 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U plix -d plix"]
+      test: [ "CMD-SHELL", "pg_isready -U plix -d plix" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -24,7 +24,7 @@ services:
     container_name: plix-app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3200:3200"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://plix:plix_secret@postgres:5432/plix?schema=public
@@ -36,7 +36,7 @@ services:
       - AUTH_SECRET=${AUTH_SECRET:-plix_super_secret_local_dev_key_32_characters_minimum}
       - ADMIN_INITIAL_USERNAME=${ADMIN_INITIAL_USERNAME:-admin}
       - ADMIN_INITIAL_PASSWORD=${ADMIN_INITIAL_PASSWORD:-password123}
-      - PORT=3000
+      - PORT=3200
       - HOST=0.0.0.0
     depends_on:
       postgres:

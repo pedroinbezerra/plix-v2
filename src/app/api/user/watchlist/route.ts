@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { MediaType } from "@prisma/client";
@@ -55,6 +56,8 @@ export async function POST(req: NextRequest) {
       await prisma.watchlistItem.delete({
         where: { id: existing.id },
       });
+      revalidatePath("/", "page");
+      revalidatePath("/minha-lista", "page");
       return NextResponse.json({ inWatchlist: false });
     } else {
       // Adiciona à lista
@@ -67,6 +70,9 @@ export async function POST(req: NextRequest) {
           posterUrl: posterUrl || null,
         },
       });
+
+      revalidatePath("/", "page");
+      revalidatePath("/minha-lista", "page");
       return NextResponse.json({ inWatchlist: true });
     }
   } catch (error) {

@@ -44,15 +44,14 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=deps /app/node_modules ./node_modules
 
 # Script de inicialização para migrações e seed
 COPY --chown=nextjs:nodejs <<'EOF' /app/entrypoint.sh
 #!/bin/sh
 set -e
 echo "Aplicando schema do Prisma ao banco de dados..."
-npx prisma db push --skip-generate || echo "Aviso: prisma db push falhou ou banco não está pronto"
+./node_modules/.bin/prisma db push --skip-generate || echo "Aviso: prisma db push falhou ou banco não está pronto"
 echo "Executando seed de usuário inicial..."
 node prisma/seed.js || echo "Aviso: seed ignorado ou usuário já existe"
 echo "Iniciando servidor Plix..."

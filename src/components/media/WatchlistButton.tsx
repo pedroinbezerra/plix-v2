@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Check } from "lucide-react";
 import { MediaType } from "@prisma/client";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ export function WatchlistButton({
   posterUrl,
   initialInWatchlist = false,
 }: WatchlistButtonProps) {
+  const router = useRouter();
   const [inWatchlist, setInWatchlist] = useState(initialInWatchlist);
   const [loading, setLoading] = useState(false);
 
@@ -56,6 +58,8 @@ export function WatchlistButton({
       if (typeof data.inWatchlist === "boolean") {
         setInWatchlist(data.inWatchlist);
       }
+      window.dispatchEvent(new CustomEvent("plix:data-updated"));
+      router.refresh();
     } catch {
       // Reverte em caso de falha
       setInWatchlist((prev) => !prev);

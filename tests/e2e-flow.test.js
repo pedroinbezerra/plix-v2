@@ -1,7 +1,7 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert");
 
-const BASE_URL = "http://127.0.0.1:3000";
+const BASE_URL = process.env.TEST_BASE_URL || "http://127.0.0.1:3200";
 
 describe("E2E Plix — Fluxo Crítico de Navegação, Autenticação e Reprodução", () => {
   let sessionCookie = "";
@@ -40,7 +40,37 @@ describe("E2E Plix — Fluxo Crítico de Navegação, Autenticação e Reproduç
     const data = await res.json();
     assert.strictEqual(data.authenticated, true);
     assert.strictEqual(data.user.username, "admin");
-    assert.strictEqual(data.currentProfile.name, "Principal");
+    assert.ok(data.currentProfile);
+  });
+
+  it("3b. Consultar e atualizar dados do perfil (/api/user/profile)", async () => {
+    // Consulta
+    const getRes = await fetch(`${BASE_URL}/api/user/profile`, {
+      headers: { Cookie: sessionCookie },
+    });
+    assert.strictEqual(getRes.status, 200);
+    const getData = await getRes.json();
+    assert.strictEqual(getData.user.username, "admin");
+    assert.ok(Array.isArray(getData.profiles));
+    assert.ok(getData.currentProfile);
+
+    // Atualização de nome e avatar
+    const patchRes = await fetch(`${BASE_URL}/api/user/profile`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: sessionCookie,
+      },
+      body: JSON.stringify({
+        name: "Pedro Plix",
+        avatar: "avatar-3",
+      }),
+    });
+    assert.strictEqual(patchRes.status, 200);
+    const patchData = await patchRes.json();
+    assert.strictEqual(patchData.success, true);
+    assert.strictEqual(patchData.profile.name, "Pedro Plix");
+    assert.strictEqual(patchData.profile.avatar, "avatar-3");
   });
 
   it("4. Alternar item na Minha Lista (Watchlist)", async () => {

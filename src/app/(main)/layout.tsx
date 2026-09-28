@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Footer } from "@/components/layout/Footer";
 import { NavigationProvider } from "@/components/layout/NavigationProvider";
+import { AutoRefreshListener } from "@/components/layout/AutoRefreshListener";
 
 export default async function MainLayout({
   children,
@@ -22,6 +23,7 @@ export default async function MainLayout({
 
   return (
     <NavigationProvider>
+      <AutoRefreshListener />
       <div className="min-h-screen bg-background text-foreground flex flex-col">
         <Navbar user={user} profile={profile} />
         <main className="flex-1 pb-16 md:pb-6">{children}</main>

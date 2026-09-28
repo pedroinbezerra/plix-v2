@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { MediaType } from "@prisma/client";
@@ -73,6 +74,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    revalidatePath("/", "page");
+    revalidatePath("/historico", "page");
+
     return NextResponse.json({ success: true, record });
   } catch (error) {
     console.error("Erro ao registrar histórico:", error);
@@ -98,6 +102,9 @@ export async function DELETE(req: NextRequest) {
         where: { profileId: profile.id },
       });
     }
+
+    revalidatePath("/", "page");
+    revalidatePath("/historico", "page");
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Circle, SkipForward, Maximize, Minimize } from "lucide-react";
 import { MediaType } from "@prisma/client";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ export function StreamingPlayer({
   backUrl,
   posterUrl,
 }: StreamingPlayerProps) {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -53,7 +55,11 @@ export function StreamingPlayer({
         title,
         posterUrl,
       }),
-    }).catch((e) => console.warn("Erro ao registrar início do histórico:", e));
+    })
+      .then(() => {
+        window.dispatchEvent(new CustomEvent("plix:data-updated"));
+      })
+      .catch((e) => console.warn("Erro ao registrar início do histórico:", e));
   }, [tmdbId, mediaType, seasonNumber, episodeNumber, title, posterUrl]);
 
   // 2. Temporizador para ocultar controles flutuantes
@@ -111,9 +117,17 @@ export function StreamingPlayer({
           posterUrl,
         }),
       });
+      window.dispatchEvent(new CustomEvent("plix:data-updated"));
+      router.refresh();
     } catch (e) {
       console.warn("Erro ao atualizar status de assistido:", e);
     }
+  };
+
+  const handleBack = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push(backUrl);
+    router.refresh();
   };
 
   return (
@@ -132,6 +146,7 @@ export function StreamingPlayer({
         <div className="flex items-center gap-4">
           <Link
             href={backUrl}
+            onClick={handleBack}
             className="p-3 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all backdrop-blur-md border border-white/10 cursor-pointer"
             aria-label="Voltar"
           >
