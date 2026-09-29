@@ -72,6 +72,9 @@ export default async function HomePage() {
             voteAverage,
             voteCount: 0,
             cast: [],
+            seasonNumber: h.seasonNumber > 0 ? h.seasonNumber : undefined,
+            episodeNumber: h.episodeNumber > 0 ? h.episodeNumber : undefined,
+            progressPercent: h.isCompleted ? 100 : 45,
           };
         })
       );
@@ -207,7 +210,6 @@ export default async function HomePage() {
             title="Continuar Assistindo"
             items={continueWatching}
             viewAllHref="/historico"
-            isLandscape={true}
             priority
           />
         )}

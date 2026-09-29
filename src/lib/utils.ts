@@ -18,3 +18,47 @@ export function formatReleaseYear(dateStr?: string | null): string {
   const year = dateStr.split("-")[0];
   return year || "";
 }
+
+export function formatMediaDuration(options: {
+  mediaType?: string;
+  runtime?: number | null;
+  seasonsCount?: number | null;
+  episodesCount?: number | null;
+  seasonNumber?: number | null;
+  episodeNumber?: number | null;
+}): string {
+  const { mediaType, runtime, seasonsCount, episodesCount, seasonNumber, episodeNumber } = options;
+
+  // Episódio específico (ex: T1, E4)
+  if (seasonNumber && episodeNumber) {
+    return runtime && runtime > 0 ? formatMinutes(runtime) : "";
+  }
+
+  const isMovie = mediaType === "FILME";
+  if (isMovie) {
+    return runtime && runtime > 0 ? formatMinutes(runtime) : "";
+  }
+
+  // Série / Anime / Dorama:
+  // Se temos contagem total de episódios e duração por episódio, calcula o tempo total
+  if (episodesCount && episodesCount > 0 && runtime && runtime > 0) {
+    const totalMinutes = episodesCount * runtime;
+    return formatMinutes(totalMinutes);
+  }
+
+  // Se temos a duração de cada episódio
+  if (runtime && runtime > 0) {
+    return formatMinutes(runtime);
+  }
+
+  // Fallbacks de contagem
+  if (episodesCount && episodesCount > 0) {
+    return `${episodesCount} eps`;
+  }
+
+  if (seasonsCount && seasonsCount > 0) {
+    return seasonsCount === 1 ? "1 temp" : `${seasonsCount} temps`;
+  }
+
+  return "";
+}

@@ -194,12 +194,6 @@ export function HeroBanner({ media, items }: HeroBannerProps) {
         </div>
       </div>
 
-      {/* Elenco no canto inferior direito estilo Apple TV */}
-      {activeMedia.cast && activeMedia.cast.length > 0 && (
-        <div className="hidden lg:block absolute bottom-18 right-8 sm:right-12 z-20 text-xs text-white/60 max-w-xs text-right leading-relaxed">
-          Estrelando <span className="text-white/90 font-medium">{activeMedia.cast.slice(0, 3).join(", ")}</span>
-        </div>
-      )}
 
       {/* Indicadores de Paginação do Carrossel Apple TV (Pill Bars) */}
       {carouselItems.length > 1 && (

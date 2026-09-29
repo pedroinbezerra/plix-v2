@@ -60,7 +60,7 @@ export function CategoryExplorer({
 
       {/* Pílulas de filtro por Gênero (Apple TV Capsule Filter Bar) */}
       {genres.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto plix-scrollbar pb-3 mb-9">
+        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-3 mb-9">
           <Link
             href={basePath}
             className={cn(

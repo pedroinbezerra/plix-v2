@@ -253,7 +253,7 @@ export default async function DetalhesPage({ params }: PageProps) {
                 <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
                   Elenco Principal
                 </h3>
-                <div className="flex items-center gap-3 overflow-x-auto plix-scrollbar pb-2">
+                <div className="flex items-center gap-3 overflow-x-auto hide-scrollbar pb-2">
                   {media.cast.map((actor) => (
                     <div
                       key={actor.id}

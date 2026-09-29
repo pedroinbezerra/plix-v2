@@ -2,13 +2,13 @@ export const dynamic = "force-dynamic";
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { History, Play, CheckCircle2, Film, Tv, Clock } from "lucide-react";
+import { History, Play, CheckCircle2, Clock } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
-
 import { metadataProvider } from "@/providers/metadata/tmdb-metadata.provider";
 import { HistoryThumbnail } from "@/components/media/HistoryThumbnail";
+import { MediaContextMenu } from "@/components/media/MediaContextMenu";
+import { formatMediaDuration } from "@/lib/utils";
 
 export default async function HistoricoPage() {
   const profile = await getCurrentProfile();
@@ -24,31 +24,40 @@ export default async function HistoricoPage() {
     rawHistory.map(async (item) => {
       let posterUrl = item.posterUrl;
       let title = item.title;
-      const isInvalid = !posterUrl || posterUrl.trim() === "" || posterUrl.includes("test.jpg");
+      let runtime = 0;
+      let seasonsCount: number | undefined;
+      let episodesCount: number | undefined;
 
-      if (isInvalid) {
-        try {
-          const details = await metadataProvider.getDetails(item.tmdbId, item.mediaType);
-          if (details.posterUrl) {
-            posterUrl = details.posterUrl;
-            if (!title || title.startsWith("Item #")) title = details.title;
-            // Autocura no banco
+      try {
+        const details = await metadataProvider.getDetails(item.tmdbId, item.mediaType);
+        if (details) {
+          if (details.posterUrl) posterUrl = details.posterUrl;
+          if (!title || title.startsWith("Item #")) title = details.title;
+          if (details.runtime) runtime = details.runtime;
+          if (details.seasonsCount) seasonsCount = details.seasonsCount;
+          if (details.episodesCount) episodesCount = details.episodesCount;
+
+          // Autocura no banco se poster ou título estavam ausentes
+          if (!item.posterUrl || item.posterUrl !== posterUrl || !item.title) {
             prisma.watchHistory
               .update({
                 where: { id: item.id },
-                data: { posterUrl: details.posterUrl, title: details.title },
+                data: { posterUrl, title },
               })
               .catch(() => {});
           }
-        } catch (err) {
-          console.warn(`Erro ao auto-enriquecer poster no histórico #${item.tmdbId}:`, err);
         }
+      } catch (err) {
+        console.warn(`Erro ao auto-enriquecer item no histórico #${item.tmdbId}:`, err);
       }
 
       return {
         ...item,
         posterUrl,
         title: title || item.title,
+        runtime,
+        seasonsCount,
+        episodesCount,
       };
     })
   );
@@ -88,10 +97,19 @@ export default async function HistoricoPage() {
                 ? "bg-purple-500/15 text-purple-300 border-purple-400/25"
                 : "bg-rose-500/15 text-rose-300 border-rose-400/25";
 
+            const durationText = formatMediaDuration({
+              mediaType: item.mediaType,
+              runtime: item.runtime,
+              seasonsCount: item.seasonsCount,
+              episodesCount: item.episodesCount,
+              seasonNumber: item.seasonNumber,
+              episodeNumber: item.episodeNumber,
+            });
+
             return (
               <div
                 key={item.id}
-                className="group flex gap-4 p-3.5 rounded-2xl apple-glass-card hover:bg-white/[0.08] hover:border-white/20 transition-all shadow-lg"
+                className="group relative flex gap-4 p-3.5 rounded-2xl apple-glass-card hover:bg-white/[0.08] hover:border-white/20 transition-all shadow-lg"
               >
                 {/* Poster / Thumbnail */}
                 <Link
@@ -112,9 +130,9 @@ export default async function HistoricoPage() {
                 </Link>
 
                 {/* Detalhes */}
-                <div className="flex-1 flex flex-col justify-between py-1">
+                <div className="flex-1 flex flex-col justify-between py-1 pr-8">
                   <div>
-                    <div className="flex items-center gap-2 mb-1.5">
+                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${badgeColor}`}>
                         {item.mediaType}
                       </span>
@@ -129,6 +147,14 @@ export default async function HistoricoPage() {
                           Em andamento
                         </span>
                       )}
+
+                      {/* Indicador de Tempo Total */}
+                      {durationText ? (
+                        <span className="flex items-center gap-1 text-[11px] text-white/70 font-medium px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                          <Clock className="w-3 h-3 text-white/50" />
+                          <span>{durationText}</span>
+                        </span>
+                      ) : null}
                     </div>
 
                     <Link
@@ -161,6 +187,23 @@ export default async function HistoricoPage() {
                       Detalhes
                     </Link>
                   </div>
+                </div>
+
+                {/* Menu de Três Pontinhos (•••) Padronizado no Histórico */}
+                <div className="absolute top-3 right-3 z-30">
+                  <MediaContextMenu
+                    media={{
+                      id: item.tmdbId,
+                      mediaType: item.mediaType,
+                      title: item.title || `Item #${item.tmdbId}`,
+                      posterUrl: item.posterUrl,
+                      seasonNumber: item.seasonNumber,
+                      episodeNumber: item.episodeNumber,
+                      runtime: item.runtime,
+                    }}
+                    initialIsCompleted={item.isCompleted}
+                    menuPosition="auto"
+                  />
                 </div>
               </div>
             );

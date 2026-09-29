@@ -25,13 +25,24 @@ export default async function MinhaListaPage() {
       let releaseYear = "";
       let voteAverage = 0;
 
+      let runtime = 0;
+      let seasonsCount: number | undefined;
+      let episodesCount: number | undefined;
+      let backdropUrl: string | null = null;
+      let isAnime: boolean | undefined;
+
       try {
         const details = await metadataProvider.getDetails(item.tmdbId, item.mediaType);
         if (details) {
           if (details.posterUrl) posterUrl = details.posterUrl;
+          if (details.backdropUrl) backdropUrl = details.backdropUrl;
           if (!title || title.startsWith("Item #")) title = details.title;
           if (details.releaseYear) releaseYear = details.releaseYear;
           if (details.voteAverage) voteAverage = details.voteAverage;
+          if (details.runtime) runtime = details.runtime;
+          if (details.seasonsCount) seasonsCount = details.seasonsCount;
+          if (details.episodesCount) episodesCount = details.episodesCount;
+          if (typeof details.isAnime === "boolean") isAnime = details.isAnime;
 
           // Autocura no banco se o poster ou título estavam ausentes
           if (!item.posterUrl || item.posterUrl !== posterUrl || !item.title) {
@@ -52,8 +63,13 @@ export default async function MinhaListaPage() {
         mediaType: item.mediaType,
         title: title || `Item #${item.tmdbId}`,
         posterUrl,
+        backdropUrl,
         releaseYear,
         voteAverage,
+        runtime,
+        seasonsCount,
+        episodesCount,
+        isAnime,
       };
     })
   );

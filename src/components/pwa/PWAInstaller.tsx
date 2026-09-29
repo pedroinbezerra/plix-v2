@@ -95,23 +95,23 @@ export function PWAInstaller() {
   return (
     <aside
       aria-label="Instalação do Aplicativo Plix"
-      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-50 p-4 rounded-2xl bg-surface/95 border border-primary/30 shadow-2xl backdrop-blur-xl animate-fade-in text-white flex flex-col gap-3"
+      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-50 p-4 rounded-2xl bg-surface/95 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-xl animate-fade-in text-white flex flex-col gap-3"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30 flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-white flex-shrink-0">
             <Smartphone className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Instalar o Plix</h3>
-            <p className="text-xs text-gray-300">
+            <h3 className="text-sm font-bold text-white tracking-tight">Instalar o Plix</h3>
+            <p className="text-xs text-white/70 leading-relaxed">
               Instale no celular para abrir em tela cheia e ter acesso rápido como um app nativo.
             </p>
           </div>
         </div>
         <button
           onClick={handleDismiss}
-          className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+          className="p-1 rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
           aria-label="Dispensar aviso de instalação"
         >
           <X className="w-4 h-4" />
@@ -119,22 +119,22 @@ export function PWAInstaller() {
       </div>
 
       {isIOS ? (
-        <div className="text-[11px] bg-white/5 border border-white/10 rounded-xl p-2.5 text-gray-300">
+        <div className="text-[11px] bg-white/5 border border-white/10 rounded-xl p-2.5 text-white/75 leading-relaxed">
           No iPhone/iPad: toque em <strong>Compartilhar</strong> (ícone do quadrado com seta) e depois em <strong>Adicionar à Tela de Início</strong>.
         </div>
       ) : (
         <div className="flex items-center justify-end gap-2 pt-1">
           <button
             onClick={handleDismiss}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white transition-colors"
+            className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
           >
             Depois
           </button>
           <button
             onClick={handleInstallClick}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover active:scale-95 text-white text-xs font-bold transition-all shadow-md shadow-primary/30"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white hover:bg-white/90 active:scale-95 text-black text-xs font-bold transition-all shadow-md cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-black" />
             <span>Instalar Agora</span>
           </button>
         </div>

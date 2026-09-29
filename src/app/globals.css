@@ -73,11 +73,16 @@ body.tv-cursor-hide * {
   }
 }
 
-/* Custom horizontal scrollbars for media rows */
-.hide-scrollbar::-webkit-scrollbar {
+/* Custom horizontal scrollbars for media rows and carousel lists */
+.hide-scrollbar::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar {
   display: none;
 }
-.hide-scrollbar {
+
+.hide-scrollbar,
+.no-scrollbar,
+.overflow-x-auto {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }

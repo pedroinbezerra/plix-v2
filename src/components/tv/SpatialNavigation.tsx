@@ -227,7 +227,9 @@ export function SpatialNavigation() {
       const rowContainer = activeEl.closest(".overflow-x-auto");
       if (rowContainer && (key === "ArrowLeft" || key === "ArrowRight")) {
         const cardsInRow = Array.from(
-          rowContainer.querySelectorAll<HTMLElement>('a[href^="/detalhes/"]')
+          rowContainer.querySelectorAll<HTMLElement>(
+            'a[href^="/detalhes/"], a[href^="/assistir/"]'
+          )
         );
         const currentIndex = cardsInRow.indexOf(activeEl);
 

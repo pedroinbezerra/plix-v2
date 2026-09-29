@@ -28,7 +28,6 @@ interface NavbarProps {
 export function Navbar({ user, profile }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [activeProfile, setActiveProfile] = useState<ProfileItem | null>(profile || null);
   const [isTvMode, setIsTvMode] = useState(false);
@@ -68,13 +67,6 @@ export function Navbar({ user, profile }: NavbarProps) {
     }
   }, [profile]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const handleLogout = async () => {
     try {
@@ -99,16 +91,12 @@ export function Navbar({ user, profile }: NavbarProps) {
 
   return (
     <>
-      <header
-        className={cn(
-          "fixed top-0 left-0 right-0 z-40 transition-all duration-300 px-4 sm:px-8 py-3 sm:py-3.5 flex items-center justify-between",
-          isScrolled
-            ? "bg-[#07080a]/85 backdrop-blur-2xl shadow-[0_12px_32px_rgba(0,0,0,0.85)] border-b border-white/[0.08]"
-            : "bg-gradient-to-b from-[#07080a]/90 via-[#07080a]/40 to-transparent"
-        )}
-      >
+      <header className="fixed top-0 left-0 right-0 z-40 px-4 sm:px-8 py-3.5 sm:py-4 flex items-center justify-between">
+        {/* Fundo degradê semi-transparente fixo estilo fade */}
+        <div className="absolute inset-0 -bottom-6 bg-gradient-to-b from-[#07080a]/95 via-[#07080a]/60 to-transparent pointer-events-none" />
+
         {/* Esquerda: Logo Apple-like + Links em Pílula */}
-        <div className="flex items-center gap-6 sm:gap-10">
+        <div className="relative z-10 flex items-center gap-6 sm:gap-10">
           <Link
             href="/"
             onClick={() => router.refresh()}
@@ -153,7 +141,7 @@ export function Navbar({ user, profile }: NavbarProps) {
         </div>
 
         {/* Direita: Modo TV + Busca + Perfil + Logout */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="relative z-10 flex items-center gap-2 sm:gap-3">
           {/* Botão Alternar Modo Smart TV */}
           <button
             onClick={handleToggleTv}
