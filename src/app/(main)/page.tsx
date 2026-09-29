@@ -12,30 +12,34 @@ import { MediaRow } from "@/components/media/MediaRow";
 export default async function HomePage() {
   const profile = await getCurrentProfile();
 
-  // 1. Continuar Assistindo (do banco de dados)
+  // 1. Continuar Assistindo (do banco de dados - apenas o que cabe na tela)
   let continueWatching: EnrichedMedia[] = [];
   if (profile) {
     try {
       const history = await prisma.watchHistory.findMany({
         where: { profileId: profile.id, isCompleted: false },
         orderBy: { lastWatchedAt: "desc" },
-        take: 12,
+        take: 8,
       });
 
       continueWatching = await Promise.all(
         history.map(async (h) => {
           let posterUrl = h.posterUrl;
+          let backdropUrl: string | null = null;
           let title = h.title;
           let releaseYear = "";
           let voteAverage = 0;
+          let runtime = 0;
 
           try {
             const details = await metadataProvider.getDetails(h.tmdbId, h.mediaType);
             if (details) {
               if (details.posterUrl) posterUrl = details.posterUrl;
+              if (details.backdropUrl) backdropUrl = details.backdropUrl;
               if (!title || title.startsWith("Item #")) title = details.title;
               if (details.releaseYear) releaseYear = details.releaseYear;
               if (details.voteAverage) voteAverage = details.voteAverage;
+              if (details.runtime) runtime = details.runtime;
 
               // Autocura no banco se o poster ou título estavam vazios
               if (!h.posterUrl || h.posterUrl !== posterUrl || !h.title) {
@@ -60,11 +64,11 @@ export default async function HomePage() {
               ? `Temporada ${h.seasonNumber}, Episódio ${h.episodeNumber}`
               : "Em andamento",
             posterUrl,
-            backdropUrl: null,
+            backdropUrl,
             releaseDate: null,
             releaseYear,
             genres: [],
-            runtime: 0,
+            runtime,
             voteAverage,
             voteCount: 0,
             cast: [],
@@ -76,14 +80,14 @@ export default async function HomePage() {
     }
   }
 
-  // 2. Minha Lista (do banco de dados com auto-enriquecimento e autocura)
+  // 2. Minha Lista (do banco de dados - apenas o que cabe na tela)
   let watchlistItems: EnrichedMedia[] = [];
   if (profile) {
     try {
       const list = await prisma.watchlistItem.findMany({
         where: { profileId: profile.id },
         orderBy: { createdAt: "desc" },
-        take: 16,
+        take: 8,
       });
 
       watchlistItems = await Promise.all(
@@ -134,7 +138,7 @@ export default async function HomePage() {
     }
   }
 
-  // 3. Catálogo por categorias
+  // 3. Catálogo por categorias (carrega somente o necessário para a tela inicial: 10 por fileira)
   let movieItems: EnrichedMedia[] = [];
   let seriesItems: EnrichedMedia[] = [];
   let animeItems: EnrichedMedia[] = [];
@@ -157,12 +161,12 @@ export default async function HomePage() {
     const pureAnimeIds = animeIds.filter((id) => !cartoonSet.has(id));
 
     const [movies, series, animes, cartoons, doramas, action] = await Promise.all([
-      metadataProvider.getBatchDetails(movieIds.slice(0, 16), "FILME"),
-      metadataProvider.getBatchDetails(seriesIds.slice(0, 16), "SERIE"),
-      metadataProvider.getBatchDetails(pureAnimeIds.slice(0, 16), "ANIME"),
-      metadataProvider.getBatchDetails(cartoonIds.slice(0, 16), "ANIME"),
-      metadataProvider.getBatchDetails(doramaIds.slice(0, 16), "DORAMA"),
-      metadataProvider.getBatchDetails(actionIds.slice(0, 16), "FILME"),
+      metadataProvider.getBatchDetails(movieIds.slice(0, 10), "FILME"),
+      metadataProvider.getBatchDetails(seriesIds.slice(0, 10), "SERIE"),
+      metadataProvider.getBatchDetails(pureAnimeIds.slice(0, 10), "ANIME"),
+      metadataProvider.getBatchDetails(cartoonIds.slice(0, 10), "ANIME"),
+      metadataProvider.getBatchDetails(doramaIds.slice(0, 10), "DORAMA"),
+      metadataProvider.getBatchDetails(actionIds.slice(0, 10), "FILME"),
     ]);
 
     movieItems = movies;
@@ -175,7 +179,7 @@ export default async function HomePage() {
     console.error("Erro ao carregar itens do catálogo para a Home:", error);
   }
 
-  // Define candidatos para o carrossel Apple TV (Featured Tray)
+  // Define candidatos para o carrossel Apple TV (Featured Shelf)
   const heroCandidates = [
     ...movieItems.filter((m) => m.backdropUrl),
     ...seriesItems.filter((s) => s.backdropUrl),
@@ -196,8 +200,8 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* Fileiras de Mídia com espaçamento Apple TV */}
-      <div className="-mt-14 sm:-mt-28 relative z-30 space-y-2 pb-16">
+      {/* Fileiras de Mídia com espaçamento limpo Apple TV (sem colisão com o carrossel) */}
+      <div className="relative z-20 space-y-4 sm:space-y-6 pb-16 pt-2 sm:pt-4">
         {continueWatching.length > 0 && (
           <MediaRow
             title="Continuar Assistindo"

@@ -41,18 +41,16 @@ body.tv-mode *:focus-visible {
   z-index: 50;
 }
 
-/* Classes utilitárias Apple TV Glass */
+/* Classes utilitárias Apple TV Glass (Otimizadas para 60fps) */
 .apple-glass {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: rgba(16, 18, 24, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .apple-glass-card {
-  background: rgba(20, 21, 28, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #14151e;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
