@@ -13,6 +13,20 @@ export function formatMinutes(minutes?: number | null): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
+export function formatSeconds(totalSeconds?: number | null): string {
+  if (!totalSeconds || isNaN(totalSeconds) || totalSeconds <= 0) return "00:00";
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+
+  const pad = (n: number) => n.toString().padStart(2, "0");
+
+  if (hours > 0) {
+    return `${hours}:${pad(minutes)}:${pad(seconds)}`;
+  }
+  return `${pad(minutes)}:${pad(seconds)}`;
+}
+
 export function formatReleaseYear(dateStr?: string | null): string {
   if (!dateStr) return "";
   const year = dateStr.split("-")[0];

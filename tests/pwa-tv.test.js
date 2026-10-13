@@ -188,4 +188,72 @@ describe("Smart TV & Navegação por Controle Remoto (D-pad)", () => {
     assert.strictEqual(shouldAutoActivateOnKey("a", 65), false);
     assert.strictEqual(shouldAutoActivateOnKey("1", 49), false);
   });
+
+  it("Previne pulo duplo (pular de 2 em 2): listener de navegação centralizado e sem duplicações", () => {
+    // Garante que src/lib/tv/spatial-nav.ts não registra addEventListener("keydown") concorrente
+    const spatialNavPath = path.join(__dirname, "..", "src", "lib", "tv", "spatial-nav.ts");
+    assert.ok(fs.existsSync(spatialNavPath), "spatial-nav.ts deve existir");
+    const content = fs.readFileSync(spatialNavPath, "utf-8");
+    assert.strictEqual(
+      content.includes('addEventListener("keydown"'),
+      false,
+      "spatial-nav.ts não deve registrar listener keydown para evitar pular de 2 em 2"
+    );
+  });
+
+  it("Acessibilidade do Menu de Três Pontinhos (•••) nos cards e títulos", () => {
+    const contextMenuPath = path.join(__dirname, "..", "src", "components", "media", "MediaContextMenu.tsx");
+    assert.ok(fs.existsSync(contextMenuPath), "MediaContextMenu.tsx deve existir");
+    const menuContent = fs.readFileSync(contextMenuPath, "utf-8");
+
+    // Botão disparador possui data-menu-trigger e estilos de foco com alto contraste para TV
+    assert.ok(menuContent.includes('data-menu-trigger="true"'), "Deve possuir atributo data-menu-trigger");
+    assert.ok(menuContent.includes("focus-visible:ring-"), "Deve possuir anel de foco destacado para TV");
+    assert.ok(menuContent.includes("plix:open-media-menu"), "Deve ouvir evento externo para abertura remota");
+
+    // Navegação interna do menu aberto trata D-pad e botão voltar
+    assert.ok(menuContent.includes("ArrowDown"), "Deve navegar entre opções com ArrowDown");
+    assert.ok(menuContent.includes("ArrowUp"), "Deve navegar entre opções com ArrowUp");
+    assert.ok(menuContent.includes("isBackKey"), "Deve fechar menu e restaurar foco ao pressionar voltar");
+  });
+
+  it("Confirmação de Saída do Aplicativo e Preservação da Sessão", () => {
+    const spatialNavComponentPath = path.join(__dirname, "..", "src", "components", "tv", "SpatialNavigation.tsx");
+    assert.ok(fs.existsSync(spatialNavComponentPath), "SpatialNavigation.tsx deve existir");
+    const navContent = fs.readFileSync(spatialNavComponentPath, "utf-8");
+
+    // Modal de confirmação
+    assert.ok(navContent.includes("isExitModalOpen"), "Deve possuir estado para controlar modal de saída");
+    assert.ok(navContent.includes("Sair do Plix?"), "Deve exibir título de confirmação antes de sair");
+    assert.ok(navContent.includes("Continuar no Plix"), "Deve possuir opção padrão de cancelar saída");
+    assert.ok(navContent.includes("Sair do aplicativo"), "Deve possuir opção de confirmar saída");
+
+    // Fechamento seguro sem deslogar
+    assert.ok(
+      !navContent.includes("/api/auth/logout"),
+      "Saída do app NUNCA deve chamar /api/auth/logout ou deslogar o usuário"
+    );
+    assert.ok(
+      !navContent.includes("destroySession"),
+      "Saída do app NUNCA deve destruir a sessão"
+    );
+  });
+
+  it("Proteção da Rota de Login: Usuários logados nunca voltam para tela de login", () => {
+    const authLayoutPath = path.join(__dirname, "..", "src", "app", "(auth)", "layout.tsx");
+    assert.ok(fs.existsSync(authLayoutPath), "src/app/(auth)/layout.tsx deve existir");
+    const layoutContent = fs.readFileSync(authLayoutPath, "utf-8");
+
+    // Redireciona usuários autenticados para a home
+    assert.ok(layoutContent.includes("getCurrentUser()"), "Deve consultar o usuário atual");
+    assert.ok(layoutContent.includes('redirect("/")'), "Deve redirecionar para a raiz se autenticado");
+
+    // LoginPage substitui o histórico de navegação
+    const loginPagePath = path.join(__dirname, "..", "src", "app", "(auth)", "login", "page.tsx");
+    const loginContent = fs.readFileSync(loginPagePath, "utf-8");
+    assert.ok(
+      loginContent.includes('router.replace("/")'),
+      "LoginPage deve usar replace em vez de push para impedir voltar para tela de login"
+    );
+  });
 });

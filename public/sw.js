@@ -45,7 +45,9 @@ self.addEventListener("fetch", (event) => {
   if (
     request.method !== "GET" ||
     request.url.includes("/api/") ||
-    request.url.includes("warezcdn")
+    request.url.includes("warezcdn") ||
+    request.url.includes("pomfy") ||
+    request.url.includes("streambetter")
   ) {
     return;
   }

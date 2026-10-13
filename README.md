@@ -136,8 +136,12 @@ npm test
 | `TMDB_ACCESS_TOKEN` | Bearer Token de leitura da API TMDB | `""` |
 | `TMDB_LANGUAGE` | Idioma de busca no TMDB | `pt-BR` |
 | `TMDB_REGION` | Região de classificação indicativa | `BR` |
-| `CATALOG_PROVIDER_BASE_URL` | URL base da API do catálogo | `https://warezcdn.sbs` |
-| `PLAYBACK_PROVIDER_BASE_URL` | URL base do player | `https://warezcdn.sbs` |
+| `CATALOG_PROVIDER_BASE_URL` | URL base da API do catálogo WarezCDN | `https://warezcdn.sbs` |
+| `PLAYBACK_PROVIDER_BASE_URL` | URL base do player WarezCDN | `https://warezcdn.sbs` |
+| `POMFY_PLAYBACK_BASE_URL` | URL base do player Pomfy | `https://api.pomfy.stream` |
+| `POMFY_CATALOG_BASE_URL` | URL base da listagem Pomfy | `https://api.pomfy.stream` |
+| `STREAMBETTER_PLAYBACK_BASE_URL` | URL base do player StreamBetter | `https://streambetter.shop` |
+| `DEFAULT_PLAYBACK_PROVIDER` | Provedor de reprodução padrão (`warez`, `pomfy` ou `streambetter`) | `warez` |
 | `AUTH_SECRET` | Chave de segurança para sessões de cookie | String aleatória (32+ caracteres) |
 | `ADMIN_INITIAL_USERNAME` | Usuário administrador inicial | `admin` |
 | `ADMIN_INITIAL_PASSWORD` | Senha inicial do administrador | `password123` |

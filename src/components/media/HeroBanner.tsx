@@ -213,7 +213,7 @@ export function HeroBanner({ media, items }: HeroBannerProps) {
               const isActive = idx === currentIndex;
               return (
                 <button
-                  key={item.id}
+                  key={`${item.mediaType}-${item.id}`}
                   onClick={() => setCurrentIndex(idx)}
                   aria-label={`Slide ${idx + 1}`}
                   className={cn(

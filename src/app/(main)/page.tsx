@@ -16,11 +16,22 @@ export default async function HomePage() {
   let continueWatching: EnrichedMedia[] = [];
   if (profile) {
     try {
-      const history = await prisma.watchHistory.findMany({
+      const rawHistory = await prisma.watchHistory.findMany({
         where: { profileId: profile.id, isCompleted: false },
         orderBy: { lastWatchedAt: "desc" },
-        take: 8,
+        take: 30,
       });
+
+      // Garante apenas a reprodução mais recente de cada obra (evita múltiplos episódios da mesma série na fileira)
+      const seenMedia = new Set<string>();
+      const history = rawHistory
+        .filter((h) => {
+          const key = `${h.mediaType}-${h.tmdbId}`;
+          if (seenMedia.has(key)) return false;
+          seenMedia.add(key);
+          return true;
+        })
+        .slice(0, 8);
 
       continueWatching = await Promise.all(
         history.map(async (h) => {
@@ -30,6 +41,8 @@ export default async function HomePage() {
           let releaseYear = "";
           let voteAverage = 0;
           let runtime = 0;
+          let seasonsCount: number | undefined;
+          let episodesCount: number | undefined;
 
           try {
             const details = await metadataProvider.getDetails(h.tmdbId, h.mediaType);
@@ -40,6 +53,8 @@ export default async function HomePage() {
               if (details.releaseYear) releaseYear = details.releaseYear;
               if (details.voteAverage) voteAverage = details.voteAverage;
               if (details.runtime) runtime = details.runtime;
+              if (details.seasonsCount) seasonsCount = details.seasonsCount;
+              if (details.episodesCount) episodesCount = details.episodesCount;
 
               // Autocura no banco se o poster ou título estavam vazios
               if (!h.posterUrl || h.posterUrl !== posterUrl || !h.title) {
@@ -69,6 +84,8 @@ export default async function HomePage() {
             releaseYear,
             genres: [],
             runtime,
+            seasonsCount,
+            episodesCount,
             voteAverage,
             voteCount: 0,
             cast: [],
@@ -96,16 +113,30 @@ export default async function HomePage() {
       watchlistItems = await Promise.all(
         list.map(async (item) => {
           let posterUrl = item.posterUrl;
+          let backdropUrl: string | null = null;
           let title = item.title;
-          const isInvalid = !posterUrl || posterUrl.trim() === "" || posterUrl.includes("test.jpg");
+          let releaseYear = "";
+          let voteAverage = 0;
+          let runtime = 0;
+          let seasonsCount: number | undefined;
+          let episodesCount: number | undefined;
+          let isAnime: boolean | undefined;
 
-          if (isInvalid) {
-            try {
-              const details = await metadataProvider.getDetails(item.tmdbId, item.mediaType);
-              if (details.posterUrl) {
-                posterUrl = details.posterUrl;
-                if (!title || title.startsWith("Item #")) title = details.title;
-                // Autocura no banco
+          try {
+            const details = await metadataProvider.getDetails(item.tmdbId, item.mediaType);
+            if (details) {
+              if (details.posterUrl) posterUrl = details.posterUrl;
+              if (details.backdropUrl) backdropUrl = details.backdropUrl;
+              if (!title || title.startsWith("Item #")) title = details.title;
+              if (details.releaseYear) releaseYear = details.releaseYear;
+              if (details.voteAverage) voteAverage = details.voteAverage;
+              if (details.runtime) runtime = details.runtime;
+              if (details.seasonsCount) seasonsCount = details.seasonsCount;
+              if (details.episodesCount) episodesCount = details.episodesCount;
+              if (typeof details.isAnime === "boolean") isAnime = details.isAnime;
+
+              // Autocura no banco
+              if (!item.posterUrl || item.posterUrl !== posterUrl || !item.title) {
                 prisma.watchlistItem
                   .update({
                     where: { id: item.id },
@@ -113,9 +144,9 @@ export default async function HomePage() {
                   })
                   .catch(() => {});
               }
-            } catch (err) {
-              console.warn(`Erro ao auto-enriquecer poster de watchlist #${item.tmdbId}:`, err);
             }
+          } catch (err) {
+            console.warn(`Erro ao auto-enriquecer poster de watchlist #${item.tmdbId}:`, err);
           }
 
           return {
@@ -125,12 +156,15 @@ export default async function HomePage() {
             originalTitle: "",
             overview: "",
             posterUrl,
-            backdropUrl: null,
+            backdropUrl,
             releaseDate: null,
-            releaseYear: "",
+            releaseYear,
             genres: [],
-            runtime: 0,
-            voteAverage: 0,
+            runtime,
+            seasonsCount,
+            episodesCount,
+            isAnime,
+            voteAverage,
             voteCount: 0,
             cast: [],
           };
@@ -163,13 +197,15 @@ export default async function HomePage() {
     const cartoonSet = new Set(cartoonIds);
     const pureAnimeIds = animeIds.filter((id) => !cartoonSet.has(id));
 
+    const uniqueIds = (ids: string[]) => Array.from(new Set(ids));
+
     const [movies, series, animes, cartoons, doramas, action] = await Promise.all([
-      metadataProvider.getBatchDetails(movieIds.slice(0, 10), "FILME"),
-      metadataProvider.getBatchDetails(seriesIds.slice(0, 10), "SERIE"),
-      metadataProvider.getBatchDetails(pureAnimeIds.slice(0, 10), "ANIME"),
-      metadataProvider.getBatchDetails(cartoonIds.slice(0, 10), "ANIME"),
-      metadataProvider.getBatchDetails(doramaIds.slice(0, 10), "DORAMA"),
-      metadataProvider.getBatchDetails(actionIds.slice(0, 10), "FILME"),
+      metadataProvider.getBatchDetails(uniqueIds(movieIds).slice(0, 10), "FILME"),
+      metadataProvider.getBatchDetails(uniqueIds(seriesIds).slice(0, 10), "SERIE"),
+      metadataProvider.getBatchDetails(uniqueIds(pureAnimeIds).slice(0, 10), "ANIME"),
+      metadataProvider.getBatchDetails(uniqueIds(cartoonIds).slice(0, 10), "ANIME"),
+      metadataProvider.getBatchDetails(uniqueIds(doramaIds).slice(0, 10), "DORAMA"),
+      metadataProvider.getBatchDetails(uniqueIds(actionIds).slice(0, 10), "FILME"),
     ]);
 
     movieItems = movies;
@@ -182,12 +218,20 @@ export default async function HomePage() {
     console.error("Erro ao carregar itens do catálogo para a Home:", error);
   }
 
-  // Define candidatos para o carrossel Apple TV (Featured Shelf)
+  // Define candidatos únicos para o carrossel Apple TV (Featured Shelf)
+  const seenHero = new Set<string>();
   const heroCandidates = [
     ...movieItems.filter((m) => m.backdropUrl),
     ...seriesItems.filter((s) => s.backdropUrl),
     ...animeItems.filter((a) => a.backdropUrl),
-  ].slice(0, 6);
+  ]
+    .filter((item) => {
+      const key = `${item.mediaType}-${item.id}`;
+      if (seenHero.has(key)) return false;
+      seenHero.add(key);
+      return true;
+    })
+    .slice(0, 6);
 
   const defaultHero = heroCandidates[0] || movieItems[0] || seriesItems[0];
 

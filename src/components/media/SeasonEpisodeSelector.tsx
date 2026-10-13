@@ -87,11 +87,14 @@ export function SeasonEpisodeSelector({
             return (
               <div
                 key={ep.episodeNumber}
+                data-card-wrapper="true"
                 className="group relative flex flex-col rounded-2xl overflow-visible hover:z-30 focus-within:z-30 select-none"
               >
                 <Link
                   href={playUrl}
                   tabIndex={0}
+                  data-card-link="true"
+                  data-media-id={String(tmdbId)}
                   className="flex flex-col flex-1 rounded-2xl overflow-hidden bg-surface-card border border-white/[0.08] hover:border-white/30 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_45px_rgba(0,0,0,0.85)] focus-visible:scale-[1.04] focus-visible:shadow-tv focus-visible:border-white outline-none"
                 >
                   {/* Thumbnail 16:9 */}

@@ -175,6 +175,7 @@ export function LandscapeMediaCard({
 
   return (
     <div
+      data-card-wrapper="true"
       className={cn(
         "group relative rounded-2xl transition-all duration-300 block select-none",
         className ? className : "flex-shrink-0 w-[240px] sm:w-[280px] md:w-[320px] lg:w-[350px]",
@@ -184,6 +185,8 @@ export function LandscapeMediaCard({
       <Link
         href={playHref}
         tabIndex={0}
+        data-card-link="true"
+        data-media-id={String(media.id)}
         className={cn(
           "relative aspect-video w-full rounded-2xl overflow-hidden bg-[#14151e] border border-white/[0.08] block",
           "hover:scale-[1.03] hover:shadow-[0_20px_45px_rgba(0,0,0,0.85)] hover:border-white/30 hover:z-20 transition-all duration-300",

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { EnrichedMedia } from "@/providers/metadata/types";
@@ -24,11 +24,23 @@ const BUFFER_RIGHT = 2;
 
 export function MediaRow({
   title,
-  items,
+  items: rawItems,
   viewAllHref,
   priority = false,
   isLandscape = false,
 }: MediaRowProps) {
+  // Garante itens únicos por mediaType e id para evitar colisões de chave e duplicações no carrossel
+  const items = useMemo(() => {
+    if (!rawItems || rawItems.length === 0) return [];
+    const seen = new Set<string>();
+    return rawItems.filter((item) => {
+      const key = `${item.mediaType}-${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [rawItems]);
+
   const sectionRef = useRef<HTMLElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   const savedScrollLeftRef = useRef<number>(0);

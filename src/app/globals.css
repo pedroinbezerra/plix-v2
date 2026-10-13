@@ -29,6 +29,13 @@ body {
   z-index: 40;
 }
 
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  transform: none !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4), 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+
 /* Modo Smart TV (10-foot experience Apple TV) */
 body.tv-mode {
   user-select: none;
@@ -39,6 +46,13 @@ body.tv-mode *:focus-visible {
   box-shadow: 0 0 0 4px #ffffff, 0 25px 55px rgba(0, 0, 0, 0.9), 0 0 45px rgba(255, 255, 255, 0.55);
   transform: scale(1.06);
   z-index: 50;
+}
+
+body.tv-mode input:focus-visible,
+body.tv-mode textarea:focus-visible,
+body.tv-mode select:focus-visible {
+  transform: none !important;
+  box-shadow: 0 0 0 3px #ffffff, 0 10px 25px rgba(0, 0, 0, 0.6) !important;
 }
 
 /* Classes utilitárias Apple TV Glass (Otimizadas para 60fps) */

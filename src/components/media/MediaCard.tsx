@@ -213,6 +213,7 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
 
   return (
     <div
+      data-card-wrapper="true"
       className={cn(
         "group relative rounded-2xl transition-all duration-300 block select-none",
         className ? className : "flex-shrink-0 w-[140px] sm:w-[170px] md:w-[195px] lg:w-[210px]",
@@ -222,6 +223,8 @@ export function MediaCard({ media, priority = false, className }: MediaCardProps
       <Link
         href={primaryHref}
         tabIndex={0}
+        data-card-link="true"
+        data-media-id={String(media.id)}
         className={cn(
           "relative rounded-2xl overflow-hidden bg-surface-card border border-white/[0.08] transition-all duration-300 block",
           "hover:scale-[1.04] hover:shadow-[0_20px_45px_rgba(0,0,0,0.85)] hover:border-white/30",

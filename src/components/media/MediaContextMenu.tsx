@@ -55,12 +55,26 @@ export function MediaContextMenu({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Sincroniza props iniciais se mudarem
   useEffect(() => {
     if (initialInWatchlist !== undefined) setInWatchlist(initialInWatchlist);
     if (initialIsCompleted !== undefined) setIsCompleted(initialIsCompleted);
   }, [initialInWatchlist, initialIsCompleted]);
+
+  // Listener para evento externo disparado pelo controle remoto (long press OK ou tecla Menu na Smart TV)
+  useEffect(() => {
+    const handleExternalOpen = (e: Event) => {
+      const customEvent = e as CustomEvent<{ id: string }>;
+      if (customEvent.detail && String(customEvent.detail.id) === String(media.id)) {
+        setIsOpen(true);
+      }
+    };
+
+    window.addEventListener("plix:open-media-menu", handleExternalOpen);
+    return () => window.removeEventListener("plix:open-media-menu", handleExternalOpen);
+  }, [media.id]);
 
   // Ao abrir o menu, se os status não foram informados, consulta a API
   useEffect(() => {
@@ -126,7 +140,23 @@ export function MediaContextMenu({
     setOpenUpward(spaceBelow < estimatedMenuHeight && rect.top > estimatedMenuHeight);
   }, [isOpen, menuPosition]);
 
-  // Fecha o menu ao clicar fora ou pressionar Escape
+  // Auto-foco no primeiro item do menu ao abrir para Smart TVs e navegação por D-pad
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const timer = setTimeout(() => {
+      if (menuRef.current) {
+        const firstFocusable = menuRef.current.querySelector<HTMLElement>("button, a");
+        if (firstFocusable) {
+          firstFocusable.focus();
+        }
+      }
+    }, 40);
+
+    return () => clearTimeout(timer);
+  }, [isOpen]);
+
+  // Navegação por teclado / controle remoto (D-Pad) dentro do menu aberto e fechamento suave
   useEffect(() => {
     if (!isOpen) return;
 
@@ -137,16 +167,57 @@ export function MediaContextMenu({
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      const isBackKey =
+        e.key === "Escape" ||
+        e.key === "Backspace" ||
+        e.key === "GoBack" ||
+        e.keyCode === 10009 || // Tizen Return
+        e.keyCode === 461 ||   // webOS Back
+        e.keyCode === 4;       // Android TV Back
+
+      if (isBackKey) {
+        e.preventDefault();
+        e.stopPropagation();
         setIsOpen(false);
+        triggerRef.current?.focus();
+        return;
+      }
+
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        if (!menuRef.current) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const items = Array.from(
+          menuRef.current.querySelectorAll<HTMLElement>("button, a")
+        );
+        if (items.length === 0) return;
+
+        const currentActive = document.activeElement as HTMLElement;
+        const currentIndex = items.indexOf(currentActive);
+
+        if (e.key === "ArrowDown") {
+          const nextIndex = currentIndex === -1 || currentIndex === items.length - 1 ? 0 : currentIndex + 1;
+          items[nextIndex]?.focus();
+        } else if (e.key === "ArrowUp") {
+          const prevIndex = currentIndex <= 0 ? items.length - 1 : currentIndex - 1;
+          items[prevIndex]?.focus();
+        }
+        return;
+      }
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        // Previne navegação fora do menu enquanto estiver aberto
+        e.preventDefault();
+        e.stopPropagation();
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown, true);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown, true);
     };
   }, [isOpen]);
 
@@ -291,7 +362,10 @@ export function MediaContextMenu({
     >
       {/* Botão de Três Pontinhos (•••) */}
       <button
+        ref={triggerRef}
         type="button"
+        data-menu-trigger="true"
+        data-media-id={String(media.id)}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -299,12 +373,13 @@ export function MediaContextMenu({
         }}
         className={cn(
           "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all cursor-pointer backdrop-blur-xl border border-white/15",
+          "focus:outline-none focus-visible:scale-125 focus-visible:bg-white focus-visible:text-black focus-visible:border-white focus-visible:ring-2 focus-visible:ring-white focus-visible:shadow-[0_0_25px_rgba(255,255,255,0.9)] focus-visible:z-40",
           isOpen
-            ? "bg-white text-black shadow-lg scale-105"
+            ? "bg-white text-black shadow-lg scale-110 border-white ring-2 ring-white/80"
             : "bg-black/60 hover:bg-black/85 active:bg-white active:text-black text-white/90 hover:text-white hover:border-white/40 shadow-md",
           triggerClassName
         )}
-        aria-label="Opções do título"
+        aria-label={`Opções de ${media.title}`}
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
@@ -315,6 +390,8 @@ export function MediaContextMenu({
       {isOpen && (
         <div
           ref={menuRef}
+          role="menu"
+          data-media-menu-open="true"
           className={cn(
             "absolute z-50 min-w-[240px] sm:min-w-[260px] bg-[#1a1b24]/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] p-1.5 text-xs text-white animate-fade-in",
             openUpward ? "bottom-full mb-2" : "top-full mt-2",
@@ -327,9 +404,11 @@ export function MediaContextMenu({
           {/* 1. Quero Assistir */}
           <button
             type="button"
+            role="menuitem"
+            tabIndex={0}
             onClick={handleToggleWatchlist}
             disabled={isUpdatingWatchlist}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-white/10 active:bg-white/15 transition-colors text-left cursor-pointer group/item disabled:opacity-50"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-white/10 focus:bg-white/20 focus:text-white focus:outline-none focus:ring-1 focus:ring-white/40 active:bg-white/15 transition-colors text-left cursor-pointer group/item disabled:opacity-50"
           >
             <span className="font-medium text-gray-200 group-hover/item:text-white">
               {inWatchlist ? "Remover de Quero Assistir" : "Adicionar a Quero Assistir"}
@@ -346,9 +425,11 @@ export function MediaContextMenu({
           {/* 2. Marcar como Assistido */}
           <button
             type="button"
+            role="menuitem"
+            tabIndex={0}
             onClick={handleToggleWatched}
             disabled={isUpdatingHistory}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-white/10 active:bg-white/15 transition-colors text-left cursor-pointer group/item disabled:opacity-50"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-white/10 focus:bg-white/20 focus:text-white focus:outline-none focus:ring-1 focus:ring-white/40 active:bg-white/15 transition-colors text-left cursor-pointer group/item disabled:opacity-50"
           >
             <span className="font-medium text-gray-200 group-hover/item:text-white">
               {isCompleted ? "Marcar como não assistido" : "Marcar como assistido"}
@@ -368,8 +449,10 @@ export function MediaContextMenu({
           {/* 3. Ir para detalhes */}
           <Link
             href={detailsHref}
+            role="menuitem"
+            tabIndex={0}
             onClick={() => setIsOpen(false)}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-white/10 active:bg-white/15 transition-colors text-left cursor-pointer group/item"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-white/10 focus:bg-white/20 focus:text-white focus:outline-none focus:ring-1 focus:ring-white/40 active:bg-white/15 transition-colors text-left cursor-pointer group/item"
           >
             <span className="font-medium text-gray-200 group-hover/item:text-white">
               {media.seasonNumber !== undefined && media.episodeNumber !== undefined
@@ -382,8 +465,10 @@ export function MediaContextMenu({
           {/* 4. Compartilhar */}
           <button
             type="button"
+            role="menuitem"
+            tabIndex={0}
             onClick={handleShare}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-white/10 active:bg-white/15 transition-colors text-left cursor-pointer group/item"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-white/10 focus:bg-white/20 focus:text-white focus:outline-none focus:ring-1 focus:ring-white/40 active:bg-white/15 transition-colors text-left cursor-pointer group/item"
           >
             <span className="font-medium text-gray-200 group-hover/item:text-white">
               Compartilhar
@@ -394,8 +479,10 @@ export function MediaContextMenu({
           {/* 5. Copiar Link */}
           <button
             type="button"
+            role="menuitem"
+            tabIndex={0}
             onClick={handleCopyLink}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-white/10 active:bg-white/15 transition-colors text-left cursor-pointer group/item"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-white/10 focus:bg-white/20 focus:text-white focus:outline-none focus:ring-1 focus:ring-white/40 active:bg-white/15 transition-colors text-left cursor-pointer group/item"
           >
             <span className="font-medium text-gray-200 group-hover/item:text-white">
               {copied ? "Link copiado!" : "Copiar link"}

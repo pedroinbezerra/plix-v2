@@ -15,6 +15,7 @@ import {
   Link as LinkIcon,
   CheckCircle2,
   RefreshCw,
+  Server,
 } from "lucide-react";
 import { AVATAR_PRESETS } from "@/lib/avatars";
 import { GRAVATAR_STYLES, buildGravatarUrl, isGravatarUrl } from "@/lib/gravatar";
@@ -81,6 +82,28 @@ export function ProfileModal({
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Preferência do player/servidor de streaming
+  const [preferredPlayer, setPreferredPlayer] = useState<string>("warez");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("plix_player_provider");
+      if (saved) {
+        setPreferredPlayer(saved);
+      }
+    }
+  }, [isOpen]);
+
+  const handleSelectPreferredPlayer = (playerId: string) => {
+    setPreferredPlayer(playerId);
+    try {
+      localStorage.setItem("plix_player_provider", playerId);
+      document.cookie = `plix_player_provider=${playerId}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch {
+      // Ignora em caso de localStorage indisponível
+    }
+  };
 
   // Sincroniza dados quando o modal abre ou perfil muda
   useEffect(() => {
@@ -364,6 +387,72 @@ export function ProfileModal({
                       <span>Novo Perfil</span>
                     </button>
                   )}
+                </div>
+              </div>
+
+              {/* Preferência de Servidor de Streaming */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
+                  <Server className="w-3.5 h-3.5 text-gray-400" />
+                  <span>Servidor de Reprodução Padrão</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectPreferredPlayer("warez")}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-2xl border text-left transition-all cursor-pointer",
+                      preferredPlayer === "warez"
+                        ? "bg-white text-black border-white shadow-xl shadow-white/10 font-bold"
+                        : "bg-white/[0.04] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:text-white"
+                    )}
+                  >
+                    <div>
+                      <div className="text-sm font-semibold">WarezCDN</div>
+                      <div className={cn("text-[11px]", preferredPlayer === "warez" ? "text-gray-700" : "text-gray-400")}>
+                        Servidor 1
+                      </div>
+                    </div>
+                    {preferredPlayer === "warez" && <Check className="w-4 h-4 text-black flex-shrink-0" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectPreferredPlayer("pomfy")}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-2xl border text-left transition-all cursor-pointer",
+                      preferredPlayer === "pomfy"
+                        ? "bg-white text-black border-white shadow-xl shadow-white/10 font-bold"
+                        : "bg-white/[0.04] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:text-white"
+                    )}
+                  >
+                    <div>
+                      <div className="text-sm font-semibold">Pomfy</div>
+                      <div className={cn("text-[11px]", preferredPlayer === "pomfy" ? "text-gray-700" : "text-gray-400")}>
+                        Servidor 2
+                      </div>
+                    </div>
+                    {preferredPlayer === "pomfy" && <Check className="w-4 h-4 text-black flex-shrink-0" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectPreferredPlayer("streambetter")}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-2xl border text-left transition-all cursor-pointer",
+                      preferredPlayer === "streambetter"
+                        ? "bg-white text-black border-white shadow-xl shadow-white/10 font-bold"
+                        : "bg-white/[0.04] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:text-white"
+                    )}
+                  >
+                    <div>
+                      <div className="text-sm font-semibold">StreamBetter</div>
+                      <div className={cn("text-[11px]", preferredPlayer === "streambetter" ? "text-gray-700" : "text-gray-400")}>
+                        Servidor 3
+                      </div>
+                    </div>
+                    {preferredPlayer === "streambetter" && <Check className="w-4 h-4 text-black flex-shrink-0" />}
+                  </button>
                 </div>
               </div>
             </>
