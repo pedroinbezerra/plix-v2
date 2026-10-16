@@ -51,7 +51,7 @@ COPY --chown=nextjs:nodejs <<'EOF' /app/entrypoint.sh
 #!/bin/sh
 set -e
 echo "Aplicando schema do Prisma ao banco de dados..."
-./node_modules/.bin/prisma db push --skip-generate || echo "Aviso: prisma db push falhou ou banco não está pronto"
+./node_modules/.bin/prisma db push --skip-generate
 echo "Executando seed de usuário inicial..."
 node prisma/seed.js || echo "Aviso: seed ignorado ou usuário já existe"
 echo "Iniciando servidor Plix..."

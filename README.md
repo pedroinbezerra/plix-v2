@@ -44,12 +44,12 @@ O Plix é construído como um monorepo full-stack enxuto e de alta performance:
       ├─ Providers (Catalog, Metadata, Playback)
       └─ Prisma ORM
           ↓
-   [PostgreSQL 16] (Persistido em Docker Volume)
+  [PostgreSQL externo]
 ```
 
 ---
 
-## 🚀 Instalação Rápida com Docker Compose (Recomendado para Homelab)
+## 🚀 Instalação com Docker Compose
 
 ### Pré-requisitos
 - [Docker](https://docs.docker.com/get-docker/) e Docker Compose instalados no servidor.
@@ -63,10 +63,13 @@ cd plix
 cp .env.example .env
 ```
 
-Edite o arquivo `.env` para inserir seu token de leitura da API do TMDB:
+Edite o arquivo `.env` para configurar a conexão com seu PostgreSQL externo e inserir seu token de leitura da API do TMDB:
 ```ini
+DATABASE_URL="postgresql://USUARIO:SENHA@HOST:5432/BANCO?schema=public"
 TMDB_ACCESS_TOKEN="seu_token_bearer_tmdb_aqui"
 ```
+
+O banco deve estar criado e acessível pelo container da aplicação. O Compose não cria nem inicia um PostgreSQL.
 
 ### 2. Iniciar os Containers
 ```bash
@@ -74,16 +77,18 @@ docker compose up -d --build
 ```
 
 O comando irá:
-1. Subir o container do banco de dados PostgreSQL com healthcheck ativo.
-2. Construir e iniciar a aplicação Next.js standalone.
-3. Sincronizar automaticamente as tabelas (`prisma db push`) e criar o usuário inicial (`prisma/seed.js`).
+1. Construir e iniciar a aplicação Next.js standalone.
+2. Sincronizar o schema (`prisma db push`) no banco configurado em `DATABASE_URL`.
+3. Criar o usuário inicial (`prisma/seed.js`), caso ainda não exista.
+
+Se a conexão com o banco ou a sincronização do schema falhar, a aplicação não inicia. O projeto ainda não possui migrations versionadas; essa sincronização cria ou atualiza as tabelas conforme `prisma/schema.prisma`.
 
 ### 3. Acessar a Plataforma
 Abra no navegador de qualquer dispositivo conectado na sua rede Wi-Fi/LAN:
 ```
-http://IP_DO_SEU_SERVIDOR:3000
+http://IP_DO_SEU_SERVIDOR:3200
 ```
-*(Exemplo: `http://192.168.1.100:3000` ou `http://localhost:3000`)*
+*(Exemplo: `http://192.168.1.100:3200` ou `http://localhost:3200`)*
 
 **Credenciais Iniciais:**
 - **Usuário:** `admin`
@@ -132,7 +137,7 @@ npm test
 
 | Variável | Descrição | Padrão |
 | :--- | :--- | :--- |
-| `DATABASE_URL` | String de conexão com o PostgreSQL | `postgresql://plix:plix_secret@postgres:5432/plix` |
+| `DATABASE_URL` | String de conexão com o PostgreSQL externo | Obrigatória no Docker Compose |
 | `TMDB_ACCESS_TOKEN` | Bearer Token de leitura da API TMDB | `""` |
 | `TMDB_LANGUAGE` | Idioma de busca no TMDB | `pt-BR` |
 | `TMDB_REGION` | Região de classificação indicativa | `BR` |

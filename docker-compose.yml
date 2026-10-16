@@ -1,22 +1,4 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: plix-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-plix}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-plix_secret}
-      POSTGRES_DB: ${POSTGRES_DB:-plix}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U plix -d plix" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   app:
     build:
       context: .
@@ -26,22 +8,15 @@ services:
     ports:
       - "3200:3200"
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://plix:plix_secret@postgres:5432/plix?schema=public
-      - TMDB_ACCESS_TOKEN=${TMDB_ACCESS_TOKEN}
-      - TMDB_LANGUAGE=${TMDB_LANGUAGE:-pt-BR}
-      - TMDB_REGION=${TMDB_REGION:-BR}
-      - CATALOG_PROVIDER_BASE_URL=${CATALOG_PROVIDER_BASE_URL:-https://warezcdn.sbs}
-      - PLAYBACK_PROVIDER_BASE_URL=${PLAYBACK_PROVIDER_BASE_URL:-https://warezcdn.sbs}
-      - AUTH_SECRET=${AUTH_SECRET:-plix_super_secret_local_dev_key_32_characters_minimum}
-      - ADMIN_INITIAL_USERNAME=${ADMIN_INITIAL_USERNAME:-admin}
-      - ADMIN_INITIAL_PASSWORD=${ADMIN_INITIAL_PASSWORD:-password123}
-      - PORT=3200
-      - HOST=0.0.0.0
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-volumes:
-  postgres_data:
-    name: plix_postgres_data
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?Defina DATABASE_URL no arquivo .env}
+      TMDB_ACCESS_TOKEN: ${TMDB_ACCESS_TOKEN:-}
+      TMDB_LANGUAGE: ${TMDB_LANGUAGE:-pt-BR}
+      TMDB_REGION: ${TMDB_REGION:-BR}
+      CATALOG_PROVIDER_BASE_URL: ${CATALOG_PROVIDER_BASE_URL:-https://warezcdn.sbs}
+      PLAYBACK_PROVIDER_BASE_URL: ${PLAYBACK_PROVIDER_BASE_URL:-https://warezcdn.sbs}
+      AUTH_SECRET: ${AUTH_SECRET:-plix_super_secret_local_dev_key_32_characters_minimum}
+      ADMIN_INITIAL_USERNAME: ${ADMIN_INITIAL_USERNAME:-admin}
+      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD:-password123}
+      PORT: 3200
+      HOST: 0.0.0.0
