@@ -15,11 +15,15 @@ export function PWAInstaller() {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    // 1. Registra o Service Worker
+    // 1. Registra e atualiza o Service Worker, limpando caches legados
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      if ("caches" in window) {
+        caches.delete("plix-cache-v1").catch(() => {});
+      }
       navigator.serviceWorker
         .register("/sw.js")
         .then((reg) => {
+          reg.update().catch(() => {});
           console.log("[PWA] Service Worker registrado com sucesso:", reg.scope);
         })
         .catch((err) => {
