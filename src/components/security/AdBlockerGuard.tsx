@@ -1,15 +1,59 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+export const POPUP_BLOCKER_KEY = "plix_popup_blocker";
+
+export function isPopupBlockerEnabled(): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    const saved = localStorage.getItem(POPUP_BLOCKER_KEY);
+    return saved !== "false";
+  } catch {
+    return true;
+  }
+}
 
 /**
  * AdBlockerGuard
- * Proteção global contra anúncios abusivos, bloqueando por padrão
+ * Proteção configurável contra anúncios abusivos, bloqueando por padrão
  * a abertura involuntária de novas abas, popups e popunders no Plix.
+ * Pode ser ativado ou desativado pelo usuário nas configurações de Perfil.
  */
 export function AdBlockerGuard() {
+  const [enabled, setEnabled] = useState<boolean>(true);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    setEnabled(isPopupBlockerEnabled());
+
+    const handlePreferenceChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{ enabled?: boolean }>;
+      if (typeof customEvent.detail?.enabled === "boolean") {
+        setEnabled(customEvent.detail.enabled);
+      } else {
+        setEnabled(isPopupBlockerEnabled());
+      }
+    };
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === POPUP_BLOCKER_KEY) {
+        setEnabled(event.newValue !== "false");
+      }
+    };
+
+    window.addEventListener("plix:popup-blocker-changed", handlePreferenceChange);
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("plix:popup-blocker-changed", handlePreferenceChange);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !enabled) return;
 
     // 1. Intercepta window.open para impedir popups e abas automáticas
     const originalOpen = window.open;
@@ -64,7 +108,8 @@ export function AdBlockerGuard() {
       document.removeEventListener("click", handleCaptureClick, true);
       document.removeEventListener("auxclick", handleCaptureClick, true);
     };
-  }, []);
+  }, [enabled]);
 
   return null;
 }
+

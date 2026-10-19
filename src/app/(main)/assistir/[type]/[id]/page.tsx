@@ -62,6 +62,8 @@ export default async function AssistirPage({ params, searchParams }: PageProps) 
 
   const cookieStore = await cookies();
   const savedPlayer = cookieStore.get("plix_player_provider")?.value;
+  const popupBlockerCookie = cookieStore.get("plix_popup_blocker")?.value;
+  const initialPopupBlocker = popupBlockerCookie !== "false";
   const requestedPlayer = (player || savedPlayer || "warez").toLowerCase();
 
   const activeProviderId =
@@ -107,7 +109,6 @@ export default async function AssistirPage({ params, searchParams }: PageProps) 
 
   let episodeName = "";
   let nextEpisodeUrl: string | null = null;
-  let episodeRuntime: number | undefined = undefined;
 
   if (!isMovie && seasonNumber && episodeNumber) {
     try {
@@ -117,7 +118,6 @@ export default async function AssistirPage({ params, searchParams }: PageProps) 
       );
       if (currentEp) {
         episodeName = currentEp.name;
-        episodeRuntime = currentEp.runtime;
       }
 
       // Verifica se existe próximo episódio na mesma temporada
@@ -139,7 +139,6 @@ export default async function AssistirPage({ params, searchParams }: PageProps) 
   }
 
   const backUrl = `/detalhes/${type}/${id}`;
-  const effectiveRuntime = episodeRuntime || media.runtime || 0;
 
   return (
     <StreamingPlayer
@@ -147,6 +146,7 @@ export default async function AssistirPage({ params, searchParams }: PageProps) 
       allowDirectives={activeConfig.allowDirectives}
       providers={availableProviders}
       initialProvider={activeProviderId}
+      initialPopupBlocker={initialPopupBlocker}
       title={media.title}
       mediaType={mediaType}
       tmdbId={id}
@@ -156,7 +156,6 @@ export default async function AssistirPage({ params, searchParams }: PageProps) 
       nextEpisodeUrl={nextEpisodeUrl}
       backUrl={backUrl}
       posterUrl={media.posterUrl}
-      runtime={effectiveRuntime}
     />
   );
 }

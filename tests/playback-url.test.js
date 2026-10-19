@@ -271,85 +271,46 @@ describe("Multi-Provider — Alternância de Servidores (WarezCDN, Pomfy e Strea
   });
 });
 
-describe("Player — Barra de Progresso e Navegação Interativa por Controle Remoto", () => {
-  // Lógica idêntica à de src/lib/utils.ts
-  function formatSeconds(totalSeconds) {
-    if (!totalSeconds || isNaN(totalSeconds) || totalSeconds <= 0) return "00:00";
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = Math.floor(totalSeconds % 60);
-
-    const pad = (n) => n.toString().padStart(2, "0");
-
-    if (hours > 0) {
-      return `${hours}:${pad(minutes)}:${pad(seconds)}`;
-    }
-    return `${pad(minutes)}:${pad(seconds)}`;
-  }
-
-  it("Formata corretamente segundos em formato MM:SS e HH:MM:SS", () => {
-    assert.strictEqual(formatSeconds(0), "00:00");
-    assert.strictEqual(formatSeconds(45), "00:45");
-    assert.strictEqual(formatSeconds(65), "01:05");
-    assert.strictEqual(formatSeconds(720), "12:00");
-    assert.strictEqual(formatSeconds(3600), "1:00:00");
-    assert.strictEqual(formatSeconds(3665), "1:01:05");
-    assert.strictEqual(formatSeconds(7200), "2:00:00");
-  });
-
-  it("Lógica de ajuste de posição (scrubbing) na barra de progresso com D-pad", () => {
-    const duration = 3600; // 1 hora
-    let currentTime = 600; // 10 minutos
-    let isScrubbing = false;
-    let scrubTime = 0;
-
-    // Simula pressão de ArrowLeft na barra de progresso
-    const handleKeyOnProgressBar = (key) => {
-      if (key === "ArrowLeft") {
-        const base = isScrubbing ? scrubTime : currentTime;
-        scrubTime = Math.max(0, base - 15);
-        isScrubbing = true;
-      } else if (key === "ArrowRight") {
-        const base = isScrubbing ? scrubTime : currentTime;
-        scrubTime = Math.min(duration, base + 15);
-        isScrubbing = true;
-      } else if (key === "Enter") {
-        if (isScrubbing) {
-          currentTime = scrubTime;
-          isScrubbing = false;
-        } else {
-          isScrubbing = true;
-          scrubTime = currentTime;
-        }
-      }
-    };
-
-    // 1. Pressionar ArrowLeft recua 15s e ativa modo de busca
-    handleKeyOnProgressBar("ArrowLeft");
-    assert.strictEqual(isScrubbing, true);
-    assert.strictEqual(scrubTime, 585);
-
-    // 2. Pressionar ArrowLeft novamente recua mais 15s
-    handleKeyOnProgressBar("ArrowLeft");
-    assert.strictEqual(scrubTime, 570);
-
-    // 3. Pressionar Enter confirma o seek e aplica o novo tempo
-    handleKeyOnProgressBar("Enter");
-    assert.strictEqual(isScrubbing, false);
-    assert.strictEqual(currentTime, 570);
-  });
-
-  it("Garante que StreamingPlayer possui atributos acessíveis de barra de progresso e controles", () => {
+describe("Player Integrado e Bloqueador de Popups Configurável", () => {
+  it("Garante que StreamingPlayer utiliza o player integrado do provedor sem controles redundantes", () => {
     const fs = require("node:fs");
     const path = require("node:path");
     const playerFile = path.join(__dirname, "..", "src", "components", "player", "StreamingPlayer.tsx");
     assert.ok(fs.existsSync(playerFile), "StreamingPlayer.tsx deve existir");
 
     const content = fs.readFileSync(playerFile, "utf-8");
-    assert.ok(content.includes('data-player-progress="true"'), "Deve possuir atributo data-player-progress");
-    assert.ok(content.includes('role="slider"'), "Barra de progresso deve ter role slider");
-    assert.ok(content.includes("isScrubbing"), "Deve possuir controle de estado isScrubbing");
-    assert.ok(content.includes("commitSeek"), "Deve possuir função commitSeek para confirmar a posição");
-    assert.ok(content.includes("tabIndex={-1}"), "Iframe deve ter tabIndex={-1} para evitar roubo de foco");
+    assert.ok(content.includes("<iframe"), "Deve renderizar o iframe do provedor");
+    assert.ok(content.includes("shouldUseSandbox"), "Deve condicionar o sandbox ao bloqueador de popups");
+    assert.strictEqual(
+      content.includes('role="slider"'),
+      false,
+      "Não deve renderizar barra de progresso duplicada sobre o player integrado"
+    );
+  });
+
+  it("Garante que o Bloqueador de Popups é configurável no Perfil e no AdBlockerGuard", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+
+    const guardFile = path.join(__dirname, "..", "src", "components", "security", "AdBlockerGuard.tsx");
+    const profileFile = path.join(__dirname, "..", "src", "components", "profile", "ProfileModal.tsx");
+
+    const guardContent = fs.readFileSync(guardFile, "utf-8");
+    const profileContent = fs.readFileSync(profileFile, "utf-8");
+
+    assert.ok(guardContent.includes("plix_popup_blocker"), "AdBlockerGuard deve ler a chave plix_popup_blocker");
+    assert.ok(
+      guardContent.includes("plix:popup-blocker-changed"),
+      "AdBlockerGuard deve reagir ao evento plix:popup-blocker-changed"
+    );
+
+    assert.ok(
+      profileContent.includes("Bloqueador de Popups"),
+      "ProfileModal deve exibir a seção Bloqueador de Popups"
+    );
+    assert.ok(
+      profileContent.includes("handleTogglePopupBlocker"),
+      "ProfileModal deve permitir ativar ou desativar o bloqueador de popups"
+    );
   });
 });

@@ -83,8 +83,9 @@ export function ProfileModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Preferência do player/servidor de streaming
+  // Preferência do player/servidor de streaming e bloqueador de popups
   const [preferredPlayer, setPreferredPlayer] = useState<string>("warez");
+  const [popupBlockerEnabled, setPopupBlockerEnabled] = useState<boolean>(true);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -92,6 +93,9 @@ export function ProfileModal({
       if (saved) {
         setPreferredPlayer(saved);
       }
+
+      const savedBlocker = localStorage.getItem("plix_popup_blocker");
+      setPopupBlockerEnabled(savedBlocker !== "false");
     }
   }, [isOpen]);
 
@@ -100,6 +104,20 @@ export function ProfileModal({
     try {
       localStorage.setItem("plix_player_provider", playerId);
       document.cookie = `plix_player_provider=${playerId}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch {
+      // Ignora em caso de localStorage indisponível
+    }
+  };
+
+  const handleTogglePopupBlocker = (enabled: boolean) => {
+    setPopupBlockerEnabled(enabled);
+    try {
+      const value = enabled ? "true" : "false";
+      localStorage.setItem("plix_popup_blocker", value);
+      document.cookie = `plix_popup_blocker=${value}; path=/; max-age=31536000; SameSite=Lax`;
+      window.dispatchEvent(
+        new CustomEvent("plix:popup-blocker-changed", { detail: { enabled } })
+      );
     } catch {
       // Ignora em caso de localStorage indisponível
     }
@@ -453,6 +471,61 @@ export function ProfileModal({
                     </div>
                     {preferredPlayer === "streambetter" && <Check className="w-4 h-4 text-black flex-shrink-0" />}
                   </button>
+                </div>
+              </div>
+
+              {/* Bloqueador de Popups Configurável */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-gray-400" />
+                  <span>Bloqueador de Popups</span>
+                </h4>
+                <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-white/[0.04] border border-white/10">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-white">
+                      {popupBlockerEnabled ? "Bloqueador Ativado" : "Bloqueador Desativado"}
+                    </div>
+                    <div className="text-[11px] text-gray-400">
+                      {popupBlockerEnabled
+                        ? "Impede abertura automática de novas abas e popups"
+                        : "Permite popups e aberturas externas dos servidores"}
+                    </div>
+                  </div>
+
+                  <div
+                    className="flex items-center bg-black/50 p-1 rounded-full border border-white/10 shrink-0"
+                    role="radiogroup"
+                    aria-label="Configurar bloqueador de popups"
+                  >
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={popupBlockerEnabled}
+                      onClick={() => handleTogglePopupBlocker(true)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer",
+                        popupBlockerEnabled
+                          ? "bg-white text-black font-bold shadow-md"
+                          : "text-gray-400 hover:text-white"
+                      )}
+                    >
+                      Ativado
+                    </button>
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={!popupBlockerEnabled}
+                      onClick={() => handleTogglePopupBlocker(false)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer",
+                        !popupBlockerEnabled
+                          ? "bg-white text-black font-bold shadow-md"
+                          : "text-gray-400 hover:text-white"
+                      )}
+                    >
+                      Desativado
+                    </button>
+                  </div>
                 </div>
               </div>
             </>
